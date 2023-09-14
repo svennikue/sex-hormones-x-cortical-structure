@@ -1,1 +1,1 @@
-# sex hormones x corical structure
+# sex hormones x cortical structure
