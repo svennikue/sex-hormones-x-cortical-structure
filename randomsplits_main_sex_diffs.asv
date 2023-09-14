@@ -1,0 +1,235 @@
+% this script loads the results from sex_diffs_3measures.m and creates random
+% splits, weighted for men and women. 
+% it does so 1000 times and outputs the correlations.
+
+clear all
+
+% make a path to directory
+addpath(genpath('/Users/skuech/Documents/toolboxes'));
+homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';
+scriptDir = fullfile(homeDir,'script');
+addpath(genpath(scriptDir));
+dataDir = fullfile(homeDir, 'data');
+addpath(genpath(dataDir));
+outDir = fullfile(homeDir,'output');
+addpath(genpath(outDir));
+figDir = fullfile(homeDir, 'figures/HCP');
+addpath(figDir);
+
+
+
+%% loading data
+% load('female_gradients_out.mat');
+load HCP_T1wT2w_sexdiffsmaps.mat
+results_HCP= results.tvals;
+
+% with enigma toolbox
+for measure=1:3
+     if measure == 1                
+        namemoment = 'profile_gradient';
+        else if measure == 2
+            namemoment = 'profile_mean';
+            else if measure == 3
+                namemoment = 'profile_skewness';
+                end
+            end
+     end
+
+    [rho,pval] = corr(results_HCP(measure,:)', results_NSPN(measure,:)', 'Type', 'Spearman', 'rows', 'complete');
+    [p_spin, r_dist] = spin_test(results_HCP(measure,:)', results_NSPN(measure,:)', 'surface_name',...
+                'fsa5', 'parcellation_name', 'schaefer_400', 'n_rot', 1000, ...
+                'type', 'spearman');
+                f = figure
+                his = histogram(r_dist, 50, 'Normalization', 'pdf', 'edgecolor', 'w', ...
+                                   'facealpha', 1, 'linewidth', 0.5);
+                l = line(rho, 5,'Color', 'k','LineStyle', '-', 'Marker', 'o', 'MarkerFaceColor', 'k');
+                xlabel(['Null correlations' newline (sprintf('(sex diffs between %s of HCP and NSPN)', namemoment))])
+                legend(l,['{\it r}=' num2str(round(rho, 2)) newline ...
+                                  '{\it p}=' num2str(round(p_spin,3 ))])
+end
+
+
+meant1t2cov = term(covariates.meant1t2);
+meant1t2 = covariates.meant1t2;
+sexterm = term(covariates.sex);
+sex = covariates.sex;
+ageterm = term(covariates.age);
+age = covariates.age;
+icvterm = term(covariates.icv);
+icv = covariates.icv;
+
+keepmale = find(cell2mat(covariates.sex) == 'M');
+keepfemale = find(cell2mat(covariates.sex) == 'F');
+
+halfsplitsGrad = [];
+halfsplitsMean = [];
+halfsplitsSkew = [];
+takeout20gradc = [];
+takeout20meanc = [];
+takeout20skewc = [];
+
+% original t-values
+    M = 1 + meant1t2cov + sexterm + ageterm + icvterm;
+    slm_grad =  SurfStatLinMod(T1T2moments(:,:,1),M);
+    slm_grad = SurfStatT(slm_grad,sexterm.F-sexterm.M);
+    valsgrad = (slm_grad.t)';
+    
+    slm_mean =  SurfStatLinMod(T1T2moments(:,:,2),M);
+    slm_mean = SurfStatT(slm_mean,sexterm.F-sexterm.M);
+    valsmean = (slm_mean.t)';
+
+    slm_skew =  SurfStatLinMod(T1T2moments(:,:,3),M);
+    slm_skew = SurfStatT(slm_skew,sexterm.F-sexterm.M);
+    valsskew = (slm_skew.t)';
+
+for splits = 1:1000
+    % do random split 
+    indicesmale = randperm(size(keepmale,1));
+    indicesfemale = randperm(size(keepfemale,1));
+    
+    set1male = keepmale(indicesmale(1:249));
+    set2male = keepmale(indicesmale(250:499));
+    
+    set1female = keepfemale(indicesfemale(1:375));
+    set2female = keepfemale(indicesfemale(298:594));
+    
+    set1 = [set1male; set1female];
+    set2 = [set2male; set2female];
+   
+    % set up linear model with covariates for mean T1T2w layers
+    sexterm1 = term(sex(set1));
+    ageterm1 = term(age(set1));
+    icvterm1 = term(icv(set1));
+       
+    sexterm2 = term(sex(set2));
+    ageterm2 = term(age(set2));
+    icvterm2 = term(icv(set2));
+
+    % set up linear model: controlling for age, meanT1T2, ICV
+    % females - males
+
+    M1 = 1 + sexterm1 + ageterm1 + icvterm1;
+    slmgrad1 =  SurfStatLinMod(T1T2moments(set1,:,1),M1);
+    slmgrad1 = SurfStatT(slmgrad1,sexterm1.F-sexterm1.M); %contrast is female - male
+
+    slmmean1 =  SurfStatLinMod((T1T2moments(set1,:,2)),M1);
+    slmmean1 = SurfStatT(slmmean1,sexterm1.F-sexterm1.M); %contrast is female - male
+    
+    slmskew1 =  SurfStatLinMod((T1T2moments(set1,:,3)),M1);
+    slmskew1 = SurfStatT(slmskew1,sexterm1.F-sexterm1.M); %contrast is female - male
+    
+    M2 = 1 + sexterm2 + ageterm2 + icvterm2;
+    slmgrad2 = SurfStatLinMod((T1T2moments(set2,:,1)),M2);
+    slmgrad2 = SurfStatT(slmgrad2,sexterm2.F-sexterm2.M); %contrast is female - male
+    
+    slmmean2 = SurfStatLinMod((T1T2moments(set2,:,2)),M2);
+    slmmean2 = SurfStatT(slmmean2,sexterm2.F-sexterm2.M); %contrast is female - male
+    
+    slmskew2 = SurfStatLinMod((T1T2moments(set2,:,3)),M2);
+    slmskew2 = SurfStatT(slmskew2,sexterm2.F-sexterm2.M); %contrast is female - male
+    
+    valsgrad1 = (slmgrad1.t)';
+    valsgrad2 = (slmgrad2.t)';
+    
+    valsmean1 = (slmmean1.t)';
+    valsmean2 = (slmmean2.t)';
+    
+    valsskew1 = (slmskew1.t)';
+    valsskew2 = (slmskew2.t)';
+    
+    halfsplitrepg = corr(valsgrad1, valsgrad2);   
+    halfsplitsGrad = [halfsplitsGrad, halfsplitrepg];
+    
+    halfsplitrepm = corr(valsmean1, valsmean2);   
+    halfsplitsMean = [halfsplitsMean, halfsplitrepm];
+    
+    halfsplitreps = corr(valsskew1, valsskew2);   
+    halfsplitsSkew = [halfsplitsSkew, halfsplitreps];
+
+end
+
+%% plot the result.
+r1 = 1 - rand(500,1)*0.1;
+r2 = 1 + rand(500,1)*0.1;
+r = [r1;r2];
+
+colors = colormap(flipud(cbrewer('seq','Greens',11)));
+
+f=figure,
+hold on
+subplot(1,3,1)
+hold on 
+scatter(r, halfsplitsMean, 'MarkerEdgeColor', [0.4039         0    0.1216], 'Marker', '.');
+% mean = 0.8622, range = 0.4871, std = 0.0563
+boxplot(halfsplitsMean, 'widths', 0.5, 'Colors', [0.4039         0    0.1216], 'Symbol', 'w');
+ylabel(['Spatial Correlation'])
+xlabel(['Profile Mean'])
+set(gca, 'FontSize', 25, 'YLim', [0.4, 1], 'fontname', 'Calibri', 'xtick', [])
+
+subplot(1,3,2)
+hold on
+scatter(r, halfsplitsSkew, 'MarkerEdgeColor', [0.0196    0.1882    0.3804], 'Marker', '.');
+boxplot(halfsplitsSkew, 'widths', 0.5, 'Colors', [0.0196    0.1882    0.3804], 'Symbol', 'w');
+ylabel(['Spatial Correlation'])
+xlabel(['Profile Skewness'])
+set(gca, 'FontSize', 25, 'YLim', [0.4, 1], 'fontname', 'Calibri', 'xtick', [])
+
+subplot(1,3,3)
+hold on 
+scatter(r, halfsplitsGrad, 'MarkerEdgeColor', [0    0.2667    0.1059], 'Marker', '.');
+% mean = 0.5506, range = 0.3588, std = 0.0408
+boxplot(halfsplitsGrad, 'widths', 0.5, 'Colors', [0    0.2667    0.1059], 'Symbol', 'w');
+ylabel(['Spatial Correlation'])
+xlabel(['Gradient'])
+set(gca, 'FontSize', 25, 'YLim', [0.4, 1], 'fontname', 'Calibri', 'xtick', [])
+
+
+%%    
+% plot corr with orig results; taking out 20% of sample respectively
+
+    f=figure,
+    
+    subplot(1,3,1)
+    hold on 
+    scatter(r, takeout20gradc, 'k', '.');
+    % mean = 0.5506, range = 0.3588, std = 0.0408
+    boxplot(takeout20gradc, 'widths', 0.6);
+    set(gca, 'FontSize', 10, 'YLim', [0.4, 1])
+    ylabel(['Spatial Correlation'])
+    xlabel(['Gradient, taking out 20% randomly' newline 'in 1000 perms of HCP'])
+        
+    subplot(1,3,2)
+    hold on 
+    scatter(r, takeout20meanc, 'k', '.');
+    % mean = 0.8622, range = 0.4871, std = 0.0563
+    boxplot(takeout20meanc, 'widths', 0.6);
+    set(gca, 'FontSize', 10, 'YLim', [0.4, 1])
+    ylabel(['Spatial Correlation'])
+    xlabel(['Mean, taking out 20% randomly' newline 'in 1000 perms of HCP'])
+    
+    subplot(1,3,3)
+    hold on
+    scatter(r, takeout20skewc, 'k', '.');
+    % range 0.2241, mean = 0.7383, std =   0.0310
+    boxplot(takeout20skewc, 'widths', 0.6);
+    ylabel(['Spatial Correlation'])
+    xlabel(['Skewness, taking out 20% randomly' newline 'in 1000 perms of HCP'])
+    set(gca, 'FontSize', 10, 'YLim', [0.4, 1])
+
+%% Save all results
+disp(' ...saving results')
+
+save(fullfile(outDir, 'randomsplits_HCP.mat'));
+FigList = findobj(allchild(0), 'flat','Type','figure');
+for iFig = 1:length(FigList)
+    FigHandle = FigList(iFig);
+    FigName = sprintf('Figure%02d.fig', iFig);
+    savefig(FigHandle, fullfile(figDir, FigName));
+end
+
+
+disp(' ...done!:)')
+
+
+
+
