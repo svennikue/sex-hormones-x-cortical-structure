@@ -230,7 +230,25 @@ for hipposexdiffs = 1
          bigwomen = find(squeeze(CohensdFDR(:,hemi_lr))<0); %-.3159 lh, 0.2554 lh
          bigwomeneffect = mean(CohensdFDR(bigwomen,hemi_lr)); %-.3315 rh; 0.2559 rh
          bigwomeneffect(hemi_lr,:) = mean(squeeze(CohensdFDR(hemi_lr,bigwomen(hemi_lr,:)))); %0.25
-
+       
+         % to include both hemispheres in one 
+         CohensdFDR_all = [CohensdFDR(1,:), CohensdFDR(2,:)];
+             bigwomen = find(CohensdFDR_all>0);
+        bigwomeneffect = mean(CohensdFDR_all(bigwomen));
+        bigmen = find(CohensdFDR_all<0);
+        bigmeneffect = mean(CohensdFDR_all(bigmen));
+    
+        results.bigwomeneffect(:) = bigwomeneffect;
+        results.bigmeneffect(:) = bigmeneffect;
+        
+        descriptives.mean(1) = mean(mean(CohensdFDR_all(keepfemale)));
+        descriptives.mean(2) = mean(mean(CohensdFDR_all(keepmale)));
+        descriptives.std(1,:) = mean(std(CohensdFDR_all(keepfemale)));
+        descriptives.std(2,:) = mean(std(CohensdFDR_all(keepmale)));
+        descriptives.posmean(1) = mean(CohensdFDR_all(bigwomen));
+        descriptives.negmean(1) = mean(CohensdFDR_all(bigmen));
+        descriptives.posstd(1) = std(CohensdFDR_all(bigwomen));
+        descriptives.negstd(1) = std(CohensdFDR_all(bigmen));
     end
 end
 
