@@ -291,6 +291,15 @@ for m = 1:size(T1T2moments, 3)
     results.CohensdFDR(:,m) = CohensdFDR;
     results.bigwomeneffect(:,m) = bigwomeneffect;
     results.bigmeneffect(:,m) = bigmeneffect;
+
+    descriptives.mean(1,m) = mean(mean(T1T2moments(keepfemale,:,m)));
+    descriptives.mean(2,m) = mean(mean(T1T2moments(keepmale,:,m)));
+    descriptives.std(1,m,:) = mean(std(T1T2moments(keepfemale,:,m)));
+    descriptives.std(2,m,:) = mean(std(T1T2moments(keepmale,:,m)));
+    descriptives.posmean(1,m) = mean(CohensdFDR(bigwomen));
+    descriptives.negmean(2,m) = mean(CohensdFDR(bigmen));
+    descriptives.posstd(1,m) = std(CohensdFDR(bigwomen));
+    descriptives.negstd(2,m) = std(CohensdFDR(bigmen));
     
 end
 

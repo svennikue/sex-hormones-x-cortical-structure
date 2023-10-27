@@ -338,7 +338,7 @@ for hemi_lr = 1:2
         cohensd_hippo{modelnumber, hemi_lr} = Cohensd;
         tFDR_hippo{modelnumber, hemi_lr} = (slm.t .* h)';
         tFDR = (slm.t .* h)';
-        dFDR_hippo{modelnumber, hemi_lr} = (Cohensd.*h');
+        dFDR_hippo{modelnumber, hemi_lr} = (Cohensd.*h);
         dFDR = (Cohensd.*h');
 
         % save the hippocampal file
@@ -359,19 +359,19 @@ end
 for modelnumber = 1:amount_models
     % then safe some descriptives
     % then include both hemispheres in one file, per model
-    CohensdFDR_all_H(modelnumber,:) = [dFDR_hippo{modelnumber, 1}; dFDR_hippo{modelnumber, 2}];
-    bigwomen_H = find(CohensdFDR_all_H(modelnumber,:)>0);
-    bigwomeneffect_H(modelnumber) = mean(CohensdFDR_all_H(modelnumber,bigwomen_H));
-    bigmen_H = find(CohensdFDR_all_H(modelnumber,:)<0);
-    bigmeneffect_H(modelnumber) = mean(CohensdFDR_all_H(modelnumber,bigmen_H));
+    CohensdFDR_all_H = [dFDR_hippo{modelnumber, 1}, dFDR_hippo{modelnumber, 2}]
+    bigwomen = find(CohensdFDR_all_H>0);
+    bigwomeneffect_H(modelnumber) = mean(CohensdFDR_all_H(bigwomen));
+    bigmen = find(CohensdFDR_all_H<0);
+    bigmeneffect_H(modelnumber) = mean(CohensdFDR_all(bigmen));
     
     resultsH.bigwomeneffect(modelnumber,:) = bigwomeneffect_H(modelnumber);
     resultsH.bigmeneffect(modelnumber,:) = bigmeneffect_H(modelnumber);
     
-    descriptivesH.posmean(modelnumber) = mean(CohensdFDR_all_H(modelnumber,bigwomen_H));
-    descriptivesH.negmean(modelnumber) = mean(CohensdFDR_all_H(modelnumber,bigmen_H));
-    descriptivesH.posstd(modelnumber) = std(CohensdFDR_all_H(modelnumber,bigwomen_H));
-    descriptivesH.negstd(modelnumber) = std(CohensdFDR_all_H(modelnumber,bigmen_H));
+    descriptivesH.posmean(modelnumber) = mean(CohensdFDR_all(bigwomen));
+    descriptivesH.negmean(modelnumber) = mean(CohensdFDR_all(bigmen));
+    descriptivesH.posstd(modelnumber) = std(CohensdFDR_all(bigwomen));
+    descriptivesH.negstd(modelnumber) = std(CohensdFDR_all(bigmen));
 end
 
 %% Save all results

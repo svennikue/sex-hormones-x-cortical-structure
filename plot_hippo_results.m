@@ -3,14 +3,14 @@
 % HEMISPHERES, SUBFIELDS, GROUPAVE MAPS, SEXDIFFERENCES, HORMONAL CONTRASTS
 
 rh = 1;
-lh = 0;
+lh = 1;
 subfields = 0;
 groupmean = 0;
 sexdiff = 0;
 low_estr = 0;
-low_prog = 1;
+low_prog = 0;
 high_estr = 0;
-high_prog = 0;
+high_prog = 1;
 OC = 0;
 
 %%
@@ -169,16 +169,16 @@ if rh == 1
     end
 
         if high_estr == 1
-        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_Menvshigh-estr.txt');
+        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_Menvshigh-estr.txt');
     end
 
 
     if high_prog == 1
-        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_Menvshigh-prog.txt');
+        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_Menvshigh-prog.txt');
     end
 
     if OC == 1
-        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_MenvsOC-women.txt');
+        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_MenvsOC-women.txt');
     end
 
     
