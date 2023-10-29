@@ -4,7 +4,7 @@
 % makes use of a previously loaded transcriptomic map in schaefer400
 % parcellation from the BrainStat toolbox
 
-loadold = 0;
+loadold = 1;
 if loadold == 0
     clear all
     close all
@@ -299,7 +299,7 @@ C = C';
 %     scatter(xAll(:), yAll(:), 400.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1);
 scatter(xAll(:), yAll(:), 800.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1);
 scatter(xpAll(:), yAll(:), 800.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1,...
-    'MarkerEdgeColor', [0 0 0], 'LineWidth', 2);
+    'MarkerEdgeColor', [0 0 0], 'LineWidth', 4);
 
 % enclose markers in a grid
 n = size(C,1);
@@ -324,6 +324,51 @@ colorbar()
 caxis(clrLim);
 axis off
     
+% black figure:
+% Create figure
+% fh = figure();
+% ax = axes(fh);
+% hold(ax,'on')
+% colormap(flipud(cbrewer('div','RdBu',11)))
+% tickvalues = 1:3;
+% x = zeros(1,3);
+% text(x, tickvalues, measureLabel, 'HorizontalAlignment', 'right','fontsize', 16, 'fontname', 'Calibri', 'color', 'w');
+% tickvalues = 1:length(C);
+% x = zeros(size(tickvalues));
+% x(:) = 4
+% text(tickvalues, x, myLabel, 'HorizontalAlignment', 'right','Rotation',45, 'fontsize', 16, 'fontname', 'Calibri', 'color', 'w');
+% 
+% 
+% set(gcf,'color','k'); % Set figure background to black
+% 
+% C = C';
+% %     scatter(xAll(:), yAll(:), 400.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1);
+% scatter(xAll(:), yAll(:), 800.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1);
+% scatter(xpAll(:), yAll(:), 800.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1,...
+%     'MarkerEdgeColor', [1 1 1], 'LineWidth', 4);
+% 
+% % enclose markers in a grid
+% n = size(C,1);
+% xl = xAll - 0.5;
+% xadd = 26.5*ones(size(C,1),1);
+% 
+% xl = [xl,xadd];
+% xl = [xl;xl(1,:)];
+% 
+% yl = yAll + 0.5;
+% yadd = 0.5*ones(size(C,2),1)';
+% yl = [yadd;yl];
+% yl = [yl,yl(:,1)];
+% 
+% line(xl, yl, 'color', 'w') % horizontal lines
+% line(xl', yl', 'color', 'w') % vertical lines
+% 
+% axis(ax,'equal')
+% axis(ax,'tight')
+% set(ax,'YDir','Reverse', 'fontsize', 16, 'fontname', 'Calibri', 'color', 'w')
+% colorbar('color', 'w')
+% caxis(clrLim);
+% axis off
 
 %% Save all results
 

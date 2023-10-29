@@ -14,7 +14,7 @@ if loadold == 0
 end
 
 saveall = 0;
-plotfigs = 0;
+plotfigs = 1;
 smallsample = 1; % always take the smaller one (final analysis)
 
 
@@ -247,8 +247,8 @@ for modelnumber = 1:modelnumber
     end
        
     % start with the analysis for all 3 measures.
-    for moment = 1
-    % for moment = 1:size(T1T2moments, 3) 
+    % for moment = 1 or only choose one
+    for moment = 1:size(T1T2moments, 3) 
         % ADJUST MODEL WITHOUT MEANT1T2!!
         M = 1 + groupcompterm + ageterm + icvterm;
          %M = 1 + meant1t2cov + groupcompterm + ageterm + icvterm;
@@ -575,8 +575,6 @@ h.m(5, 1).MarkerFaceColor   = cb(1,:);
 h.p{6, 1}.FaceColor         = cb(10,:);
 h.s{6, 1}.MarkerFaceColor   = cb(10,:);
 h.m(6, 1).MarkerFaceColor   = cb(10,:);
-.
-
 
 %% Save all results
 
