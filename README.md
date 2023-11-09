@@ -11,3 +11,5 @@ I recommend the following order:
 5. plot_hippo_results.m to plot the hippocampus 
 6. randomsplits_main_sex_diffs.m to compute reliability of main sex difference effects
 7. randomsplits_hippo.m to compute reliability of hippocampal sex differences
+8. Genetic_decoding_sexdiffs.m for the genetic hormonal analysis
+9. vasculatur_x_sexdiffs.m to compute overlap between t-statistics of sex differences and vasculature
