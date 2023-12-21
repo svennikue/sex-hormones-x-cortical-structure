@@ -244,7 +244,6 @@ for m = 1:size(T1T2moments, 3)
     FigName{(count)} = sprintf('%s_method_%s.fig', dataname, namemoment);
 
         
-    
     % set up linear model with covariates of sex, age and ICV 
     M = 1 + sexterm + ageterm + icvterm;        
     slm = SurfStatLinMod(T1T2moments(:,:,m),M);
@@ -303,11 +302,93 @@ for m = 1:size(T1T2moments, 3)
     
 end
 
+%% Add analysis: correlation between Mean and Skewness
+
+% correlation between skewsness sex-diffs and mean sex-diffs: r = -.4120
+mean_sex_diffs = results.Cohensd(:,2);
+skew_sex_diffs = results.Cohensd(:,3);
+corr_mean_skew_sexdiffs = corr(mean_sex_diffs, skew_sex_diffs)
+
+% parcel-wise correlation between skew and mean, all males
+mean_males = T1T2moments(keepmale, :, 2);
+skew_males = T1T2moments(keepmale, :, 3);
+corr_males_mean_skew_avg = corrcoef(mean_males, skew_males)
+corr_males_mean_skew_mtx = corr(mean_males, skew_males);
+corr_males_mean_skew = diag(corr_males_mean_skew_mtx);
+
+for i = 1:400 %200 parcels per hemisphere
+    vertices(find(schaefer_400==i)) = corr_males_mean_skew(i);
+end
+
+f = figure,
+BoSurfStatViewData(vertices,SN,'')
+colormap(flipud(cbrewer('div','RdBu',11)))
+%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+SurfStatColLim([-1 1])
+%SurfStatColLim(clim)
+exportfigbo(f,[figDir, sprintf('/%s_corr_males_mean_skew%s')],'png', 10)
+
+
+% parcel-wise correlation between skew and mean, all females
+mean_females = T1T2moments(keepfemale, :, 2);
+skew_females = T1T2moments(keepfemale, :, 3);
+corr_females_mean_skew_avg = corrcoef(mean_females, skew_females)
+corr_females_mean_skew_mtx = corr(mean_females, skew_females);
+corr_females_mean_skew = diag(corr_females_mean_skew_mtx);
+
+for i = 1:400 %200 parcels per hemisphere
+    vertices(find(schaefer_400==i)) = corr_females_mean_skew(i);
+end
+
+f = figure,
+BoSurfStatViewData(vertices,SN,'')
+colormap(flipud(cbrewer('div','RdBu',11)))
+%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+SurfStatColLim([-1 1])
+%SurfStatColLim(clim)
+exportfigbo(f,[figDir, sprintf('/%s_corr_females_mean_skew%s')],'png', 10)
+
+
+% parcel-wise correlation between skew and mean, all 
+mean_all = T1T2moments(:, :, 2);
+skew_all = T1T2moments(:, :, 3);
+corr_all_mean_skew_avg = corrcoef(mean_all, skew_all)
+corr_all_mean_skew_mtx = corr(mean_all, skew_all);
+corr_all_mean_skew = diag(corr_all_mean_skew_mtx);
+
+for i = 1:400 %200 parcels per hemisphere
+    vertices(find(schaefer_400==i)) = corr_all_mean_skew(i);
+end
+
+f = figure,
+BoSurfStatViewData(vertices,SN,'')
+colormap(flipud(cbrewer('div','RdBu',11)))
+%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+SurfStatColLim([-1 1])
+%SurfStatColLim(clim)
+exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
+
+% and a figure that shows the link between each measure and ICV (eTIV)
+
+for i = 1:400 %200 parcels per hemisphere
+    vertices(find(schaefer_400==i)) = ICV(i);
+end
+
+f = figure,
+BoSurfStatViewData(vertices,SN,'')
+colormap(flipud(cbrewer('div','RdBu',11)))
+%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+SurfStatColLim([-1 1])
+%SurfStatColLim(clim)
+exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
+
+
 
 %% Save all results
 
-disp(' ...saving results')
+
 if saveall == 1
+    disp(' ...saving results')
     save(fullfile(outDir, sprintf('%s_main_effects_sexdiffs.mat', dataname)));
     save((fullfile(outDir, sprintf('%s_sexdiffsmaps.mat', dataname))), 'T1T2moments', 'results', 'covariates', 'keep');    
     FigList = findobj(allchild(0), 'flat','Type','figure');

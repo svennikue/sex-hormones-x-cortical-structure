@@ -1,6 +1,7 @@
 %%%%%% THIS SCRIPT ALLOWS TO PLOT ALL HIPPOCAMPAL FIGURES
 %% SETTINGS:
-% HEMISPHERES, SUBFIELDS, GROUPAVE MAPS, SEXDIFFERENCES, HORMONAL CONTRASTS
+% HEMISPHERES, SUBFIELDS, GROUP-AVE MAPS, SEXDIFFERENCES, HORMONAL
+% CONTRASTS, WOMEN ONLY HORMONES
 
 rh = 1;
 lh = 1;
@@ -10,13 +11,39 @@ sexdiff = 0;
 low_estr = 0;
 low_prog = 0;
 high_estr = 0;
-high_prog = 1;
+high_prog = 0;
 OC = 0;
+
+OCNC = 0;
+highlowprog = 0;
+highlowestr = 1;
+FDR_corr = 0;
 
 %%
 % Left hemisphere
 
 if lh == 1
+    if OCNC == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_women-OCvsNC.txt');
+       if FDR_corr == 0
+           data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_Cohensd_women-OCvsNC.txt');
+       end
+    end
+
+    if highlowprog == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_women-highvslow-progesterone.txt');
+       if FDR_corr == 0
+           data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_Cohensd_women-highvslow-progesterone.txt');
+       end
+    end
+
+    if highlowestr == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_women-highvslow-estrogen.txt');
+       if FDR_corr == 0
+           data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_Cohensd_women-highvslow-estrogen.txt');
+       end
+    end    
+
     if sexdiff == 1
         load /Users/skuech/Documents/my_projects/female_gradients/output/results_hippocampus_lh_sexdiffs.mat;
         data = (results.CohensdFDR)';
@@ -47,6 +74,7 @@ if lh == 1
     if OC == 1
         data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/lh_hippo_dFDR_MenvsOC-women.txt');
     end
+
 
        
     % JORDAN 
@@ -87,6 +115,11 @@ if lh == 1
         colormap(flipud(cbrewer('div','RdBu',11)));
         clim([-1,1]);
 
+    elseif OCNC == 1 ||highlowprog == 1 || highlowestr == 1
+        lh = plot_gifti(slh,data);
+        colormap(flipud(cbrewer('div','PuOr',11)));
+        clim([-1,1]);
+
     elseif groupmean == 1
         lh = plot_gifti(slh,data);
         colormap(cbrewer('seq','Greens',11));
@@ -125,6 +158,10 @@ if lh == 1
         luh = plot_gifti(sluh, data);
         colormap(flipud(cbrewer('div','RdBu',11)));
         clim([-1,1])
+    elseif OCNC == 1 ||highlowprog == 1 || highlowestr == 1
+        lh = plot_gifti(sluh,data);
+        colormap(flipud(cbrewer('div','PuOr',11)));
+        clim([-1,1]);
     elseif groupmean == 1
         lh = plot_gifti(sluh,data);
         colormap(cbrewer('seq','Greens',11));
@@ -146,6 +183,19 @@ end
 %% RIGHT HEMISPHERE
 
 if rh == 1
+    if OCNC == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_women-OCvsNC.txt');
+    end
+
+    if highlowprog == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_women-highvslow-progesterone.txt');
+    end
+
+    if highlowestr == 1
+       data = load ('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_women-highvslow-estrogen.txt');
+    end  
+
+
     if sexdiff == 1
         load /Users/skuech/Documents/my_projects/female_gradients/output/results_hippocampus_rh_sexdiffs.mat;
         data = (results.CohensdFDR)';
@@ -218,6 +268,12 @@ if rh == 1
         lh = plot_gifti(slh,data);
         colormap(flipud(cbrewer('div','RdBu',11)))
         clim([-1,1])
+
+    elseif OCNC == 1 ||highlowprog == 1 || highlowestr == 1
+        lh = plot_gifti(slh,data);
+        colormap(flipud(cbrewer('div','PuOr',11)));
+        clim([-1,1]);
+
     elseif groupmean == 1
         lh = plot_gifti(slh,data);
         colormap(cbrewer('seq','Greens',11));
@@ -256,6 +312,10 @@ if rh == 1
         luh = plot_gifti(sluh, data);
         colormap(flipud(cbrewer('div','RdBu',11)))
         clim([-1,1])
+    elseif OCNC == 1 ||highlowprog == 1 || highlowestr == 1
+        lh = plot_gifti(sluh,data);
+        colormap(flipud(cbrewer('div','PuOr',11)));
+        clim([-1,1]);
     elseif groupmean == 1
         lh = plot_gifti(sluh,data);
         colormap(cbrewer('seq','Greens',11));

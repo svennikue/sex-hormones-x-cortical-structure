@@ -1,8 +1,8 @@
 % This script analysis if microstructural moments changes as a function of
 % hormones. 
-% firstly, it compares men to women taking oral contraceptives (OC) vs.
-% women that are naturally cycling (NC); and secondly, it compares men to
-% women in different phases of their menstrual cycle. 
+% it takes the 5 models included in the manuscript and then runs a
+% reliabilty anlyses with it: does the effect depend on something in the
+% male sample?
 % this scripts requires to have run sex_diffs_3measures.m before
 
 loadold = 0;
@@ -59,8 +59,6 @@ if loadold == 0
     excl_OC = find(OC ~= 1); % all men and all women that are NC
     % include only women that take OC
     keep_takeOC = find(OC == 1); %170 take OC
-    % exclude all naturally cycling women from whole sample
-    excl_natcyc = find(OC ~= 0); % all men and all women that take OC
     % include only women that are naturally cycling
     keep_NC = find(OC == 0); % n = 423
     
@@ -75,145 +73,123 @@ if loadold == 0
     % D1(:,41) is Days since last Menstruation: all that are available
     menses = D1.Menstrual_DaysSinceLast(keep);
     subjectvars = D1(keep,:);
-    
-    if smallsample == 1
-        % exclude all that take birth control, that dont have a regular cycle,
-        % and that are more than 28 days since menstruation.
 
-        % women with a regular cycle shorter than 29 days = 284
-        % high estr = 184
-        % low estr = 100
-        % high prog = 113
-        % low prog = 171
-        % OC = 170
-        % overall 431 women with regular cycles or OC taking
-        keep_menses = mintersect(find(~isnan(menses)), find(menses<29), find(menses>-1), ...
-            find(subjectvars.Menstrual_RegCycles==1), find(subjectvars.Menstrual_UsingBirthControl==0));
+    % exclude all who take birth control, that dont have a regular cycle,
+    % and that are more than 28 days since menstruation
 
-        dayssincemenses = menses(keep_menses);
-        progconce = num2cell(dayssincemenses);
-        progconce(dayssincemenses < 15) = {'low'};
-        progconce(dayssincemenses > 14) = {'high'};
+    % women with a regular cycle shorter than 29 days = 284
+    % high estr = 184
+    % low estr = 100
+    % high prog = 113
+    % low prog = 171
+    % OC = 170
+    % overall 431 women with regular cycles or OC taking
+    keep_menses = mintersect(find(~isnan(menses)), find(menses<29), find(menses>-1), ...
+        find(subjectvars.Menstrual_RegCycles==1), find(subjectvars.Menstrual_UsingBirthControl==0));
 
-        keeplowprog = mintersect(find(~isnan(menses)), find(menses<15), ...
-            find(menses>-1), find(subjectvars.Menstrual_RegCycles==1), ...
-            find(subjectvars.Menstrual_UsingBirthControl==0));
-        keepmenandlowprog = [keepmale; keeplowprog];
+    dayssincemenses = menses(keep_menses);
+    progconce = num2cell(dayssincemenses);
+    progconce(dayssincemenses < 15) = {'low'};
+    progconce(dayssincemenses > 14) = {'high'};
 
-        keephighprog = mintersect(find(~isnan(menses)), find(menses<29), ...
-            find(menses>14), find(subjectvars.Menstrual_RegCycles==1), ...
-            find(subjectvars.Menstrual_UsingBirthControl==0));
-        keepmenandhighprog = [keepmale; keephighprog];
+    keeplowprog = mintersect(find(~isnan(menses)), find(menses<15), ...
+        find(menses>-1), find(subjectvars.Menstrual_RegCycles==1), ...
+        find(subjectvars.Menstrual_UsingBirthControl==0));
 
-        %Definition phases: ovulation = days 7-14, premenstrual = 24-28
-        % luteal = after day 14, follicular = before day 15
+    keephighprog = mintersect(find(~isnan(menses)), find(menses<29), ...
+        find(menses>14), find(subjectvars.Menstrual_RegCycles==1), ...
+        find(subjectvars.Menstrual_UsingBirthControl==0));
 
-        estrconce = num2cell(dayssincemenses);
-        estrconce(dayssincemenses < 7) = {'low'};
-        estrconce(dayssincemenses > 6) = {'high'};
-        estrconce(dayssincemenses > 23) = {'low'};
+    %Definition phases: ovulation = days 7-14, premenstrual = 24-28
+    % luteal = after day 14, follicular = before day 15
 
-        keephighestr = mintersect(find(~isnan(menses)), find(menses<23), ...
-            find(menses>6), find(subjectvars.Menstrual_RegCycles==1), ...
-            find(subjectvars.Menstrual_UsingBirthControl==0));
-        keepmenandhighestr = [keepmale; keephighestr];
+    estrconce = num2cell(dayssincemenses);
+    estrconce(dayssincemenses < 7) = {'low'};
+    estrconce(dayssincemenses > 6) = {'high'};
+    estrconce(dayssincemenses > 23) = {'low'};
 
-        % all menstrual cycle but not the high estrogen values.
-        % keep menses - keephighestr
+    keephighestr = mintersect(find(~isnan(menses)), find(menses<23), ...
+        find(menses>6), find(subjectvars.Menstrual_RegCycles==1), ...
+        find(subjectvars.Menstrual_UsingBirthControl==0));
 
-        keeplowestr = ~ismember(keep_menses, keephighestr);
-        keeplowestr = keep_menses(keeplowestr);  
-        keepmenandlowestr = [keepmale; keeplowestr];
+    % all menstrual cycle but not the high estrogen values.
+    % keep menses - keephighestr
 
-    else if smallsample == 0
-            % with a slightly different sample
-            % not sure if these numbers are correct [22.05.23]
-            % women with a regular cycle = 334 
-            % high estr = 237
-            % low estr = 97
-            % high prog = 129
-            % low prog = 205
-            % OC = 170
-            % overall 474 women with regular cycles or OC taking
-            
-            keep_menses = mintersect(find(~isnan(menses)), find(menses<35), ...
-                find(menses>-1), find(subjectvars.Menstrual_UsingBirthControl==0));
-
-            dayssincemenses = menses(keep_menses);
-
-            progconce = num2cell(dayssincemenses);
-            progconce(dayssincemenses < 17) = {'low'};
-            progconce(dayssincemenses > 16) = {'high'};
-
-            keeplowprog = mintersect(find(~isnan(menses)), find(menses<17), ...
-                find(menses>-1), find(subjectvars.Menstrual_UsingBirthControl==0));
-            keepmenandlowprog = [keepmale; keeplowprog];
-
-            keephighprog = mintersect(find(~isnan(menses)), find(menses<35), ...
-                find(menses>16), find(subjectvars.Menstrual_UsingBirthControl==0));
-            keepmenandhighprog = [keepmale; keephighprog];
-
-            estrconce = num2cell(dayssincemenses);
-            estrconce(dayssincemenses < 7) = {'low'};
-            estrconce(dayssincemenses > 6) = {'high'};
-            estrconce(dayssincemenses > 23) = {'low'};
-
-            keephighestr = mintersect(find(~isnan(menses)), find(menses<26), ...
-                find(menses>5), find(subjectvars.Menstrual_UsingBirthControl==0));
-            keepmenandhighestr = [keepmale; keephighestr];
-
-            % all menstrual cycle but not the high estrogen values.
-            % keep menses - keephighestr
-            
-            keeplowestr = ~ismember(keep_menses, keephighestr);
-            keeplowestr = keep_menses(keeplowestr);  
-            keepmenandlowestr = [keepmale; keeplowestr];
-        end
-    end
-      
+    keeplowestr = ~ismember(keep_menses, keephighestr);
+    keeplowestr = keep_menses(keeplowestr);  
+ 
 else if loadold == 1        
     % alternatively: load complete mat from running this script last time. 
-    load('hormonal_effects_moments.mat');
+    load('hormonal_effects_rel.mat');
     keyboard
     end
 end
 
 
+%% for the reliability analysis, draw 500 perm of random splits males 
+% define the samples.
+for perms = 1:500
+    perm_indices = randperm(size(keepmale,1));
+    keep_OC_male(perms,1,:) = keepmale(perm_indices(1:size(keep_takeOC,1)));
+    keep_OC_male(perms,2,:) = keepmale(perm_indices((size(keep_takeOC,1)+1):(2*size(keep_takeOC,1))));
+
+    keep_highprog_male(perms,1,:) = keepmale(perm_indices(1:size(keephighprog,1)));
+    keep_highprog_male(perms,2,:) = keepmale(perm_indices((size(keephighprog,1)+1): (2*size(keephighprog,1))));
+    
+    keep_lowprog_male(perms,1,:) = keepmale(perm_indices(1:size(keeplowprog,1)));
+    keep_lowprog_male(perms,2,:) = keepmale(perm_indices((size(keeplowprog,1)+1):(2*size(keeplowprog,1))));
+
+    keep_high_estr_male(perms,1,:) = keepmale(perm_indices(1:size(keephighestr,1)));
+    keep_high_estr_male(perms,2,:) = keepmale(perm_indices((size(keephighestr,1)+1):(2*size(keephighestr,1))));
+
+    keep_low_estr_male(perms,1,:) = keepmale(perm_indices(1:size(keeplowestr,1)));
+    keep_low_estr_male(perms,2,:) = keepmale(perm_indices((size(keeplowestr,1)+1):(2*size(keeplowestr,1))));
+
+
+    excl_natcyc = find(OC ~= 0); % all men and all women that take OC
+    keepmenandhighprog(1,:) = [keep_highprog_male(perms,1,:); keephighprog];
+    keepmenandhighprog(2,:) = [keep_highprog_male(perms,2,:); keephighprog];
+
+    keepmenandlowprog(1,:) = [keepmale; keeplowprog];
+    keepmenandlowprog(2,:) = [keepmale; keeplowprog];
+
+    keepmenandhighestr(1,:) = [keepmale; keephighestr];
+    keepmenandhighestr(2,:) = [keepmale; keephighestr];
+
+    keepmenandlowestr(1,:) = [keepmale; keeplowestr];
+    keepmenandlowestr(2,:) = [keepmale; keeplowestr];
+
+end
+
+
 %% Analyses.
+
+% to continue I'd have to choose  sets, then compute, then correlate and
+% plot to internal consistency. 
+
 % set up all covariates
 meant1t2 = covariates.meant1t2;
 sex = covariates.sex;
 age = covariates.age;
 icv = covariates.icv;
-
-  
+ 
 % how many models am I testing?
-% modelnumber = 5;
+modelnumber = 5;
 
 % define inclusion per model so I can loop through them
-keep_subsample{1} = keep_OCrecorded; % 1. to compare OC vs no OC women
-modelname{1} = 'fem: OC vs NC';
-keep_subsample{2} = excl_OC; % 2. to compare men vs. NC women
-modelname{2} = 'Men vs NC women';
-keep_subsample{3} = excl_natcyc; % 3. to compare men vs. OC women
-modelname{3} = 'Men vs OC women';
-keep_subsample{4} = keep_menses; % keep only those NC women with regular cycle >> estr
-modelname{4} = 'fem: h v l estr';
-keep_subsample{5} = keep_menses; % keep only those NC women with regular cycle >> prog
-modelname{5} = 'fem: h v l prog';
-keep_subsample{6} = keepmenandhighprog; % keep men high prog women with regular cycle
-modelname{6} = 'Men vs high prog';
-keep_subsample{7} = keepmenandlowprog; % keep men and low prog women with regular cycle
-modelname{7} = 'Men vs low prog';
-keep_subsample{8} = keepmenandhighestr; % keep men high estr women with regular cycle
-modelname{8} = 'Men vs high estr';
-keep_subsample{9} = keepmenandlowestr; % keep men and low estr women with regular cycle
-modelname{9} = 'Men vs low estr';
+keep_subsample{1} = excl_natcyc; % 3. to compare men vs. OC women
+modelname{1} = 'Men vs OC women';
+keep_subsample{2} = keepmenandhighprog; % keep men high prog women with regular cycle
+modelname{2} = 'Men vs high prog';
+keep_subsample{3} = keepmenandlowprog; % keep men and low prog women with regular cycle
+modelname{3} = 'Men vs low prog';
+keep_subsample{4} = keepmenandhighestr; % keep men high estr women with regular cycle
+modelname{4} = 'Men vs high estr';
+keep_subsample{5} = keepmenandlowestr; % keep men and low estr women with regular cycle
+modelname{5} = 'Men vs low estr';
 
 
-% for modelnumber = 9
-for modelnumber = 1
-%for modelnumber = 3
+for modelnumber = 1:modelnumber
     clear keep meant1t2part 
     keep = keep_subsample{modelnumber};
     
@@ -227,46 +203,17 @@ for modelnumber = 1
     icvterm = term(icvpart);
     
     name_contrast = modelname{modelnumber};
-    
-    % in one model, it has to be sexterm, in the other OCterm.
-    if modelnumber == 1
-        groupcompterm = term(OCcell);
-    else if (modelnumber == 2) || (modelnumber == 3) || (modelnumber == 6) || (modelnumber == 7) || (modelnumber == 8) || (modelnumber == 9)
-            % 2 is men vs. NC women, 3 is men vs. OC women, 
-            % 6 is men vs. high prog, 7 is men vs. low prog
-            % 8 is men vs. high estr, 9 is men vs. low estr
-        sexpart = sex(keep);
-        groupcompterm = term(sexpart);
-        else if modelnumber == 4
-                groupcompterm = term(estrconce);
-            else if modelnumber == 5 
-                    groupcompterm = term(progconce);
-                end
-            end
-        end
-    end
-       
+    sexpart = sex(keep);
+    groupcompterm = term(sexpart);
+   
     % start with the analysis for all 3 measures.
     % for moment = 1 or only choose one
     for moment = 1:size(T1T2moments, 3) 
         % ADJUST MODEL WITHOUT MEANT1T2!!
         M = 1 + groupcompterm + ageterm + icvterm;
-         %M = 1 + meant1t2cov + groupcompterm + ageterm + icvterm;
-        if modelnumber == 1  
-            slm = SurfStatLinMod(T1T2moments(keep,:,moment),M);
-            slm = SurfStatT(slm,groupcompterm.no-groupcompterm.yes); %contrast is noOC - OCtakers
-        else if modelnumber == (modelnumber == 2) || (modelnumber == 3) || (modelnumber == 6) || (modelnumber == 7) || (modelnumber == 8) || (modelnumber == 9)
-            % 2 is men vs. NC women, 3 is men vs. OC women,
-            % 6 is men vs. high prog, 7 is men vs. low prog, 
-            % 8 is men vs. high estr, 9 is men vs. low estr
-            slm = SurfStatLinMod(T1T2moments(keep,:,moment),M);
-            slm = SurfStatT(slm,groupcompterm.F-groupcompterm.M); %contrast is female - male
-            else if modelnumber == 4 || modelnumber == 5 % 4 is estrogen, 5 is progesterone
-                    slm = SurfStatLinMod(T1T2moments(keep,:,moment),M);
-                    slm = SurfStatT(slm,groupcompterm.high-groupcompterm.low); %contrast is high - low
-                end
-            end
-        end
+        %M = 1 + meant1t2cov + groupcompterm + ageterm + icvterm
+        slm = SurfStatLinMod(T1T2moments(keep,:,moment),M);
+        slm = SurfStatT(slm,groupcompterm.F-groupcompterm.M); %contrast is female - male
         
         % Cohen's D
         % Cohen's D = 2t / sqrt(df)
@@ -297,60 +244,18 @@ for modelnumber = 1
                 end
             end
         end
-             
-        if plotfigs == 1    
-%             % plot sex difference t values
-%             vertices = zeros(20484,1);
-%             for i = 1:400 %200 parcels per hemisphere
-%                 vertices(find(schaefer_400==i)) = slm.t(i);
-%             end   
-%             f = figure,
-% 
-%             BoSurfStatViewData(vertices,SN,'')
-%             if (modelnumber == 1) ||  (modelnumber == 4) || (modelnumber == 5)
-%                 colormap(flipud(cbrewer('div','PuOr',11)))
-%             else 
-%                 colormap(flipud(cbrewer('div','RdBu',11)))
-%             end
-%             %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
-%             SurfStatColLim([-10 10])
-%             %SurfStatColLim(clim)
-%             title(sprintf('Tvals for contrast %s, for %s', name_contrast, namemoment));
-%             exportfigbo(f,[figDir, sprintf('/HCP_Tw1T2w_hormonaleff_tvals_%s_contrast_%s', namemoment, name_contrast)],'png', 10)
-%             count = count + 1
-%             FigName{(count)} = sprintf('HCP_Tw1T2w_hormonaleff_tvals_%s_constrast_%s.fig', namemoment, name_contrast);
-% 
-% 
-%             %plot tval only of those parcels that survive FDR correction
-%             vertices = zeros(20484,1);
-%             for i = 1:400 %200 parcels per hemisphere
-%                 vertices(find(schaefer_400==i)) = slm.t(i)*h(i);
-%             end
-% 
-%             f = figure,
-%             BoSurfStatViewData(vertices,SN,'')
-%             if (modelnumber == 1) ||  (modelnumber == 4) || (modelnumber == 5)
-%                 colormap(flipud(cbrewer('div','PuOr',11)))
-%             else 
-%                 colormap(flipud(cbrewer('div','RdBu',11)))
-%             end  
-%             SurfStatColLim([-10 10])
-%             title(sprintf('FDR corr tvals for contrast %s, for %s', name_contrast, namemoment));
-%             exportfigbo(f,[figDir, sprintf('/HCP_Tw1T2w_hormonaleff_FDR_%s_%s', namemoment, name_contrast)],'png', 10)
-%             count = count + 1
-%             FigName{(count)} = sprintf('HCP_Tw1T2w_hormonaleff_FDR_%s_%s.fig', namemoment, name_contrast);
-%         end
-        
-            % plot EFFECT SIZE FDR corrected 
+    end
+end
 
+%%
+        if plotfigs == 1    
+            % plot sex difference t values
             vertices = zeros(20484,1);
             for i = 1:400 %200 parcels per hemisphere
-                CohensdFDR(i) = Cohensd(i)*h(i)
-                vertices(find(schaefer_400==i)) = Cohensd(i)*h(i);
-                %vertices(find(schaefer_400==i)) = Cohensd(i);
-            end
-    
+                vertices(find(schaefer_400==i)) = slm.t(i);
+            end   
             f = figure,
+
             BoSurfStatViewData(vertices,SN,'')
             if (modelnumber == 1) ||  (modelnumber == 4) || (modelnumber == 5)
                 colormap(flipud(cbrewer('div','PuOr',11)))
@@ -358,21 +263,68 @@ for modelnumber = 1
                 colormap(flipud(cbrewer('div','RdBu',11)))
             end
             %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
-            SurfStatColLim([-1 1])
+            SurfStatColLim([-10 10])
             %SurfStatColLim(clim)
-            title(sprintf('FDR corr. Cohens d, %s, for %s', name_contrast, namemoment));
-            exportfigbo(f,[figDir, sprintf('/HCP_hormonaleff_FDRCohensD_%s%s', namemoment, name_contrast)],'png', 10)
+            title(sprintf('Tvals for contrast no %s, for %s', name_contrast, namemoment));
+            exportfigbo(f,[figDir, sprintf('/HCP_Tw1T2w_hormonaleff_tvals_%s_contrast_%s', namemoment, name_contrast)],'png', 10)
             count = count + 1
-            FigName{(count)} = sprintf('HCP_hormonaleff_FDRCohensD_%s%s.fig', namemoment, name_contrast);
-    
-            % identify mean of all positive and negative effects
-            bigwomen = find(CohensdFDR>0);
-            bigwomeneffect = mean(CohensdFDR(bigwomen)); %
-            bigmen = find(CohensdFDR<0);
-            bigmeneffect = mean(CohensdFDR(bigmen)); %
+            FigName{(count)} = sprintf('HCP_Tw1T2w_hormonaleff_tvals_%s_constrast_%s.fig', namemoment, name_contrast);
+
+
+            %plot tval only of those parcels that survive FDR correction
+            vertices = zeros(20484,1);
+            for i = 1:400 %200 parcels per hemisphere
+                vertices(find(schaefer_400==i)) = slm.t(i)*h(i);
+            end
+
+            f = figure,
+            BoSurfStatViewData(vertices,SN,'')
+            if (modelnumber == 1) ||  (modelnumber == 4) || (modelnumber == 5)
+                colormap(flipud(cbrewer('div','PuOr',11)))
+            else 
+                colormap(flipud(cbrewer('div','RdBu',11)))
+            end  
+            SurfStatColLim([-10 10])
+            title(sprintf('FDR corr tvals for contrast %s, for %s', name_contrast, namemoment));
+            exportfigbo(f,[figDir, sprintf('/HCP_Tw1T2w_hormonaleff_FDR_%s_%s', namemoment, name_contrast)],'png', 10)
+            count = count + 1
+            FigName{(count)} = sprintf('HCP_Tw1T2w_hormonaleff_FDR_%s_%s.fig', namemoment, name_contrast);
         end
+        
+        % plot EFFECT SIZE FDR corrected 
+        vertices = zeros(20484,1);
+        for i = 1:400 %200 parcels per hemisphere
+            CohensdFDR(i) = Cohensd(i)*h(i)
+            %vertices(find(schaefer_400==i)) = Cohensd(i)*h(i);
+            vertices(find(schaefer_400==i)) = Cohensd(i);
+        end
+
+        f = figure,
+        BoSurfStatViewData(vertices,SN,'')
+        colormap(flipud(cbrewer('div','RdBu',11)))
+        %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+        SurfStatColLim([-1 1])
+        %SurfStatColLim(clim)
+        title(sprintf('FDR corr. Cohens d for contrast %s, for %s', name_contrast, namemoment));
+        exportfigbo(f,[figDir, sprintf('/HCP_hormonaleff_FDRCohensD_%s%s', namemoment, name_contrast)],'png', 10)
+        count = count + 1
+        FigName{(count)} = sprintf('HCP_hormonaleff_FDRCohensD_%s%s.fig', namemoment, name_contrast);
+
+        % identify mean of all positive and negative effects
+        bigwomen = find(CohensdFDR>0);
+        bigwomeneffect = mean(CohensdFDR(bigwomen)); %
+        bigmen = find(CohensdFDR<0);
+        bigmeneffect = mean(CohensdFDR(bigmen)); %
+     
     end
 end
+
+
+
+
+
+
+
 
 %% Visualize effects.
 % plot effect sizes per parcel for each comparison
@@ -516,85 +468,7 @@ cohensd_gradient_mat(:, 10) = results.Cohensd(:,1)';
 
 tbl = array2table(mean_grad, "RowNames", modelname, "VariableNames", ["Mean", "Standard Error"])
 
-% %% do an ANOVA between female subgroups.
-% keep_subsample{1} = keep_takeOC; 
-% groupname{1} = 'OC';
-% keep_subsample{2} = keephighprog; 
-% groupname{1} = 'high progesterone';
-% keep_subsample{3} = keeplowprog; 
-% groupname{1} = 'low progesterone';
-% keep_subsample{1} = keephighestr; 
-% groupname{1} = 'high estrogen';
-% keep_subsample{1} = keeplowestr; 
-% groupname{1} = 'low estrogen';
-% 
-% 
-% for moment = 1:size(T1T2moments, 3) 
-%     for group_no = 1:5
-%         keep = keep_subsample(group_no)
-%         female_groups(:,:,moment,group_no) = T1T2moments(keep,:,moment);
-%     end
-% end
 
-% %%
-% 
-% for group_no = 1:5
-%     keep = keep_subsample{group_no};
-%     
-%     meant1t2part = meant1t2(keep);
-%     meant1t2cov = term(meant1t2part);
-%     
-%     agepart = age(keep);
-%     ageterm = term(agepart);
-%     
-%     icvpart = icv(keep);
-%     icvterm = term(icvpart);
-%     
-%     name_contrast = groupname{modelnumber};
-% 
-%     if modelnumber == 1
-%         groupcompterm = term(OCcell);
-%     else if (modelnumber == 2) || (modelnumber == 3) || (modelnumber == 6) || (modelnumber == 7) || (modelnumber == 8) || (modelnumber == 9)
-%             % 2 is men vs. NC women, 3 is men vs. OC women, 
-%             % 6 is men vs. high prog, 7 is men vs. low prog
-%             % 8 is men vs. high estr, 9 is men vs. low estr
-%         sexpart = sex(keep);
-%         groupcompterm = term(sexpart);
-%         else if modelnumber == 4
-%                 groupcompterm = term(estrconce);
-%             else if modelnumber == 5 
-%                     groupcompterm = term(progconce);
-%                 end
-%             end
-%         end
-%     end
-%        
-%     % start with the analysis for all 3 measures.
-%     % for moment = 1 or only choose one
-%     for moment = 1:size(T1T2moments, 3) 
-%         % ADJUST MODEL WITHOUT MEANT1T2!!
-%         M = 1 + groupcompterm + ageterm + icvterm;
-%          %M = 1 + meant1t2cov + groupcompterm + ageterm + icvterm;
-%         if modelnumber == 1  
-%             slm = SurfStatLinMod(T1T2moments(keep,:,moment),M);
-% % set up the files.
-% for moment = 1:size(T1T2moments, 3) 
-%     high_prog_fem(:,:,moment) = T1T2moments(keephighprog,:,moment);
-%     high_estr_fem(:,:,moment) = T1T2moments(keephighestr,:,moment);
-%     low_prog_fem(:,:,moment) = T1T2moments(keeplowprog,:,moment);
-%     low_estr_fem(:,:,moment) = T1T2moments(keeplowestr,:,moment);
-%     OC_fem(:,:,moment) = T1T2moments(keep_takeOC,:,moment);
-% end
-% 
-% for moment = 1:size(T1T2moments, 3)   
-%     female_groups(:,:,moment,1) = T1T2moments(keephighprog,:,moment);
-%     female_groups(:,:,moment,2) = T1T2moments(keephighestr,:,moment);
-%     female_groups(:,:,moment,3) = T1T2moments(keeplowprog,:,moment);
-%     female_groups(:,:,moment,4) = T1T2moments(keeplowestr,:,moment);
-%     female_groups(:,:,moment,5) = T1T2moments(keep_takeOC,:,moment);
-% end
-
-%% plot the results in the cloud-plots
 
 % create mean and variance
 means = cellfun(@mean, d);
@@ -659,7 +533,7 @@ h.m(6, 1).MarkerFaceColor   = cb(10,:);
 
 if saveall == 1
     disp(' ...saving results')
-    save(fullfile(outDir, 'hormonal_effects_moments.mat'));
+    save(fullfile(outDir, 'hormonal_effects_rel.mat'));
     %save((fullfile(outDir, 'hormonalstuff.mat'), *addhere whatever I want to save*));    
     FigList = findobj(allchild(0), 'flat','Type','figure');
     for iFig = 1:length(FigList)
