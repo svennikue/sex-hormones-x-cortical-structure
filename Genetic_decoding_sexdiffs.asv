@@ -35,11 +35,17 @@ end
         
 %% Set up transcriptomic maps and load data 
 
+% add AHBA data seggregated by sex
+all_genes = readtable('/ahba_data_by_sex/exp_df_all.csv');
+gene_names_all = all_genes.Properties.VariableNames;
+female_genes = readtable('/ahba_data_by_sex/exp_df_F.csv');
+gene_names_female = female_genes.Properties.VariableNames;
+male_genes = readtable('/ahba_data_by_sex/exp_df_M_corr_intensity.csv');
+gene_names_male = male_genes.Properties.VariableNames;
 
 load genes_schaefer400.mat
 genelabels = genes_schaefer400.gene_names{1, 1}; 
 genelabels = (string(genelabels))';
-
 
 
 expression_schaefer400 = genes_schaefer400.expression{1, 1};
@@ -60,7 +66,7 @@ transm_steroidrec = expression_schaefer400(:,keep_steroidrec);
 
 Genes_synth_of_interest = [Gen_sexsynth.gene_symbol; "PIBF1"];
 % subselection of those genes I have maps for
-[labels_steroidsynth, index_sexsynth, keep_steroidsynth] = intersect(Genes_synth_of_interest, genelabels);
+[labels_steroidsynth, index_sexrec, keep_steroidsynth] = intersect(Genes_synth_of_interest, genelabels);
 transm_steroidsynth = expression_schaefer400(:,keep_steroidsynth);
 
 
@@ -71,17 +77,6 @@ transm_Xchroms = expression_schaefer400(:,keep_Xchroms);
 transm_Ychroms = expression_schaefer400(:,keep_Ychroms);
 
 %keyboard
-
-% add AHBA data seggregated by sex
-all_genes = readtable('/ahba_data_by_sex/exp_df_all.csv');
-gene_names_all = all_genes.Properties.VariableNames;
-female_genes = readtable('/ahba_data_by_sex/exp_df_F.csv');
-gene_names_female = female_genes.Properties.VariableNames;
-male_genes = readtable('/ahba_data_by_sex/exp_df_M_corr_intensity.csv');
-gene_names_male = male_genes.Properties.VariableNames;
-[labels_steroidrec_fem, index_sexrec_fem, keep_steroidrec_fem] = intersect(Genes_of_interest, gene_names_female);
-[labels_steroidsynth_fem, index_sexrec_fem, keep_steroidsynth_fem] = intersect(Genes_synth_of_interest, gene_names_female);
-
 
 %% for spatial specificity, compute baseline of 'brain genes'
 

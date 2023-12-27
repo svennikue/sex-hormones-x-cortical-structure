@@ -1,17 +1,26 @@
 % Genetic decoding analysis
+% set which of the AHBA donors should be included.
+% written 2023 by Svenja Kuchenhoff, contributions by Mohamad Amin.
 % input: sex difference maps + transcriptomic maps
 % output: correlation between gene expr. maps and sex difference measures
 % makes use of a previously loaded transcriptomic map in schaefer400
 % parcellation from the BrainStat toolbox
 
-loadold = 1;
+loadold = 0;
+
 if loadold == 0
     clear all
     close all
     loadold = 0;
 end
 
-saveall = 1;
+female_donor = 0;
+male_donor = 0;
+all_donors = 1;
+old_donors = 0;
+
+
+saveall = 0;
 count = 0;
 
 
@@ -39,8 +48,6 @@ end
 load genes_schaefer400.mat
 genelabels = genes_schaefer400.gene_names{1, 1}; 
 genelabels = (string(genelabels))';
-
-
 
 expression_schaefer400 = genes_schaefer400.expression{1, 1};
 
@@ -79,14 +86,55 @@ female_genes = readtable('/ahba_data_by_sex/exp_df_F.csv');
 gene_names_female = female_genes.Properties.VariableNames;
 male_genes = readtable('/ahba_data_by_sex/exp_df_M_corr_intensity.csv');
 gene_names_male = male_genes.Properties.VariableNames;
+
 [labels_steroidrec_fem, index_sexrec_fem, keep_steroidrec_fem] = intersect(Genes_of_interest, gene_names_female);
 [labels_steroidsynth_fem, index_sexrec_fem, keep_steroidsynth_fem] = intersect(Genes_synth_of_interest, gene_names_female);
+
+[labels_steroidrec_male, index_sexrec_male, keep_steroidrec_male] = intersect(Genes_of_interest, gene_names_male)
+[labels_steroidsynth_male, index_sexrec_male, keep_steroidsynth_male] = intersect(Genes_synth_of_interest, gene_names_male);
+
+[labels_steroidrec_all, index_sexrec_all, keep_steroidrec_all] = intersect(Genes_of_interest, gene_names_all);
+[labels_steroidsynth_all, index_sexrec_all, keep_steroidsynth_all] = intersect(Genes_synth_of_interest, gene_names_all);
+
+
+if female_donor == 1
+    transm_steroidsynth = table2array(female_genes(:,keep_steroidsynth_fem));
+    transm_steroidrec = table2array(female_genes(:,keep_steroidrec_fem));
+    labels_steroidrec = labels_steroidrec_fem;
+    labels_steroidsynth = labels_steroidsynth_fem;
+elseif male_donor == 1
+    transm_steroidsynth = table2array(male_genes(:,keep_steroidsynth_male));
+    transm_steroidrec = table2array(male_genes(:,keep_steroidrec_male));
+    labels_steroidrec = labels_steroidrec_male;
+    labels_steroidsynth = labels_steroidsynth_male;
+elseif all_donors == 1
+    transm_steroidsynth = table2array(all_genes(:,keep_steroidsynth_all));
+    transm_steroidrec = table2array(all_genes(:,keep_steroidrec_all));
+    labels_steroidrec = labels_steroidrec_all;
+    labels_steroidsynth = labels_steroidsynth_all;
+end
 
 
 %% for spatial specificity, compute baseline of 'brain genes'
 
-imagesc(expression_schaefer400(1:200,:));
-all_brain_genes = (expression_schaefer400(1:200,:))';
+if old_donors == 1
+    imagesc(expression_schaefer400(1:200,:));
+    all_brain_genes = (expression_schaefer400(1:200,:))';
+elseif male_donor == 1
+        male_array = table2array(male_genes);
+        imagesc(male_array(1:200,2:end));
+        all_brain_genes = (male_array(1:200,2:end))';
+elseif female_donor == 1
+        female_array = table2array(female_genes);
+        imagesc(female_array(1:200,2:end));
+        all_brain_genes = (female_array(1:200,2:end))';
+elseif all_donors == 1
+        all_array = table2array(all_genes);
+        imagesc(all_array(1:200,2:end));
+        all_brain_genes = (all_array(1:200,2:end))';
+end
+
+
 imagesc(all_brain_genes);
 % first exclude nans, otherwise it doesnt work
 % there are a few parcels for which I just don't have a value.
@@ -237,12 +285,22 @@ Skew_pspin = steroidsynthcorr(:,3,3);
 
 Steroidsynthesisresults = table(Genes, Gradient_corr, Gradient_p,Gradient_pspin, Mean_corr, Mean_p, Mean_pspin, Skew_corr, Skew_p, Skew_pspin);
 
-save(fullfile(outDir, 'geneticdecoding.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+if old_donors == 1
+    save(fullfile(outDir, 'geneticdecoding.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+elseif female_donor == 1
+    save(fullfile(outDir, 'geneticdecoding_femdon.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+elseif male_donor == 1
+    save(fullfile(outDir, 'geneticdecoding_maledon.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+elseif all_donors == 1
+    save(fullfile(outDir, 'geneticdecoding_allldons.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+end
+
+
 
 
 %% Plotting 
 
-clear C yl xl pvals xpAll
+clear C yl xl pvals xpAll Ctmp Ctmp2 pvalstmp pvalstmp2 myLabeltmp myLabeltmp2
 
 Ctmp(:,3) = Steroidsynthesisresults.Gradient_corr;
 Ctmp(:,1) = Steroidsynthesisresults.Mean_corr;
@@ -318,7 +376,8 @@ scatter(xpAll(:), yAll(:), 800.*abs(C(:)), C(:), 'filled', 'MarkerFaceAlpha', 1,
 % enclose markers in a grid
 n = size(C,1);
 xl = xAll - 0.5;
-xadd = 26.5*ones(size(C,1),1);
+%xadd = 26.5*ones(size(C,1),1);
+xadd = (size(C,2) + 0.5)*ones(size(C,1),1);
 
 xl = [xl,xadd];
 xl = [xl;xl(1,:)];
