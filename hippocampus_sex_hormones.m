@@ -29,13 +29,12 @@ addpath(genpath(hippoDir));
 
 %% loading data
 if loadold == 0
-    %load downsampled hippocampus
     hippo = zeros(2,867,7262); %7262 values for the original resolution
     for hemi_lr = 1:2
         files(:,1) = dir(fullfile(hippoDir, '*.txt'));
         files(:,2) = dir(fullfile(hippoDir, 'right_hippo', '*.txt'));       
-        name = (fullfile(dataDir, 'subjectListS1200_hipp_unfold.txt'));
-        subjects = importdata(name); %867 subjects
+        name_files = (fullfile(dataDir, 'subjectListS1200_hipp_unfold.txt'));
+        subjects = importdata(name_files); %867 subjects
         for i=1:length(files)
             filename = files(i,hemi_lr).name;
             hippo(hemi_lr,i,:) = importdata(filename); 
@@ -60,7 +59,7 @@ if loadold == 0
     
 
     % create keep vectors: 
-    OC = D1.Menstrual_UsingBirthControl(keep); 
+    OC = subjectvars.Menstrual_UsingBirthControl; 
     % all subjects for which OC is recorded
     keep_OCrecorded = find(~isnan(OC)); % for 593 women, OC is recorded
     % exclude all OC taking women from whole sample
@@ -82,13 +81,11 @@ if loadold == 0
     % D1(:,40) is Menstrual Cycle Length: 2= between 25-34 days
     % D1(:,41) is Days since last Menstruation: all that are available
 
-    menses = D1.Menstrual_DaysSinceLast(keep);
-    subjectvars = D1(keep,:);
+    menses = subjectvars.Menstrual_DaysSinceLast;
     
     if smallsample == 1
         % exclude all that take birth control, that dont have a regular cycle,
         % and that are more than 28 days since menstruation.
-
         % women with a regular cycle shorter than 29 days = 284
         % high estr = 184
         % low estr = 100
@@ -134,7 +131,7 @@ if loadold == 0
         keeplowestr = keep_menses(keeplowestr);  
         keepmenandlowestr = [keepmale; keeplowestr];
 
-    else if smallsample == 0
+    elseif smallsample == 0
             % 120 -> liberal criterium to include more women 
             % 198 high estr
             % 84 low estr
@@ -163,9 +160,9 @@ if loadold == 0
             keepmenandhighprog = [keepmale; keephighprog];
 
             estrconce = num2cell(dayssincemenses);
-            estrconce(dayssincemenses < 6) = {'low'};
-            estrconce(dayssincemenses > 5) = {'high'};
-            estrconce(dayssincemenses > 25) = {'low'};
+            estrconce(dayssincemenses < 7) = {'low'};
+            estrconce(dayssincemenses > 6) = {'high'};
+            estrconce(dayssincemenses > 23) = {'low'};
 
             keephighestr = mintersect(find(~isnan(menses)), find(menses<26), ...
                 find(menses>5), find(subjectvars.Menstrual_UsingBirthControl==0));
@@ -177,13 +174,11 @@ if loadold == 0
             keeplowestr = ~ismember(keep_menses, keephighestr);
             keeplowestr = keep_menses(keeplowestr);  
             keepmenandlowestr = [keepmale; keeplowestr];
-        end
     end
     
-else if loadold == 1
+elseif loadold == 1
     load hippo_lr_sex_horms_out.mat;
     keyboard
-    end
 end
 
 
@@ -217,13 +212,17 @@ for hipposexdiffs = 1
         if hemi_lr == 1
             save(fullfile(outDir, 'hipposex_lh.txt'), 'hipposex', '-ascii');
             save(fullfile(outDir, 'hipposexFDR_lh.txt'), 'fdr_hippo_tval', '-ascii');
-            save(fullfile(outDir, 'hipposexCohensd_lh.txt'), 'Cohensd', '-ascii');
-            save(fullfile(outDir, 'hipposexFDRCohensd_lh.txt'), 'CohensdFDR', '-ascii');
+            Cohensd_lh = Cohensd(hemi_lr,:);
+            save(fullfile(outDir, 'hipposexCohensd_lh.txt'), 'Cohensd_lh', '-ascii');
+            Cohensd_FDR_lh = CohensdFDR(hemi_lr,:);
+            save(fullfile(outDir, 'hipposexFDRCohensd_lh.txt'), 'Cohensd_FDR_lh', '-ascii');
         elseif hemi_lr == 2   
             save(fullfile(outDir, 'hipposex_rh.txt'), 'hipposex', '-ascii');
             save(fullfile(outDir, 'hipposexFDR_rh.txt'), 'fdr_hippo_tval', '-ascii');
-            save(fullfile(outDir, 'hipposexCohensd_rh.txt'), 'Cohensd', '-ascii');
-            save(fullfile(outDir, 'hipposexFDRCohensd_rh.txt'), 'CohensdFDR', '-ascii');
+            Cohensd_rh = Cohensd(hemi_lr,:);
+            save(fullfile(outDir, 'hipposexCohensd_rh.txt'), 'Cohensd_rh', '-ascii');
+            Cohensd_FDR_rh = CohensdFDR(hemi_lr,:);
+            save(fullfile(outDir, 'hipposexFDRCohensd_rh.txt'), 'Cohensd_FDR_rh', '-ascii');
         end
     
         % identify mean of all positive and negative effects
@@ -373,6 +372,22 @@ for modelnumber = 1:amount_models
     descriptivesH.posstd(modelnumber) = std(CohensdFDR_all_H(modelnumber,bigwomen_H));
     descriptivesH.negstd(modelnumber) = std(CohensdFDR_all_H(modelnumber,bigmen_H));
 end
+
+
+%% ANOVA part: post-hoc testing which results were different.
+for i = 1 :size((CohensdFDR_all_H), 1)
+    cohensd_mean_mat(:, i) = CohensdFDR_all_H(i,:)';
+end
+cohensd_mean_mat(:, 10) = CohensdFDR_all';
+modelname{10} = 'all_sex_diffs'
+ 
+
+[p, t, stats_d_mean] = anova1(cohensd_mean_mat)
+[all_comps_mean_cohensd,mean_mean,h,gnames] = multcompare(stats_d_mean)
+
+tbl = array2table(mean_mean, "RowNames", modelname, "VariableNames", ["Mean", "Standard Error"])
+
+
 
 %% Save all results
 disp(' ...saving results')

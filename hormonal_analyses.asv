@@ -54,9 +54,6 @@ if loadold == 0
     
     % create keep vectors: 
     OC = D1.Menstrual_UsingBirthControl(keep); 
-    OC_estr_keep = find(D1.Menstrual_UsingBirthControl == 3);
-    OC_prog_keep = find(D1.Menstrual_UsingBirthControl == 4);
-
     % all subjects for which OC is recorded
     keep_OCrecorded = find(~isnan(OC)); % for 593 women, OC is recorded
     % exclude all OC taking women from whole sample
@@ -304,7 +301,8 @@ for modelnumber = 1:9
     end
        
     % start with the analysis for all 3 measures.
-    for moment = 1 % or only choose one
+
+    % for moment = 1 or only choose one
     % for moment = 1:size(T1T2moments, 3) 
         % ADJUST MODEL WITHOUT MEANT1T2!!
         M = 1 + groupcompterm + ageterm + icvterm;
@@ -434,11 +432,9 @@ for modelnumber = 1:9
 
             % identify mean of all positive and negative effects
             bigwomen = find(CohensdFDR>0);
-            bigwomeneffect(modelnumber) = mean(CohensdFDR(bigwomen)); %
-            minwomeneffect(modelnumber) = min(CohensdFDR); %
+            bigwomeneffect = mean(CohensdFDR(bigwomen)) %
             bigmen = find(CohensdFDR<0);
-            bigmeneffect(modelnumber) = mean(CohensdFDR(bigmen)) %
-            maxmeneffect(modelnumber) = max(CohensdFDR) %
+            bigmeneffect = mean(CohensdFDR(bigmen)) %
         end
     end
 end

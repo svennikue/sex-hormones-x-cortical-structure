@@ -2,12 +2,17 @@
 %% SETTINGS:
 % HEMISPHERES, SUBFIELDS, GROUP-AVE MAPS, SEXDIFFERENCES, HORMONAL
 % CONTRASTS, WOMEN ONLY HORMONES
+clear all
 
 rh = 1;
-lh = 1;
+lh = 0;
+
+
+name = 'all_sexdiffs';
+
 subfields = 0;
 groupmean = 0;
-sexdiff = 0;
+sexdiff = 1;
 low_estr = 0;
 low_prog = 0;
 high_estr = 0;
@@ -16,8 +21,15 @@ OC = 0;
 
 OCNC = 0;
 highlowprog = 0;
-highlowestr = 1;
+highlowestr = 0;
 FDR_corr = 0;
+
+
+addpath(genpath('/Users/skuech/Documents/toolboxes'));
+homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';
+
+figDir = fullfile(homeDir, 'figures/hormonal_figs');
+addpath(figDir);
 
 %%
 % Left hemisphere
@@ -45,8 +57,9 @@ if lh == 1
     end    
 
     if sexdiff == 1
-        load /Users/skuech/Documents/my_projects/female_gradients/output/results_hippocampus_lh_sexdiffs.mat;
-        data = (results.CohensdFDR)';
+        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/hipposexFDRCohensd_lh.txt');
+        %load /Users/skuech/Documents/my_projects/female_gradients/output/results_hippocampus_lh_sexdiffs.mat;
+        % data = (results.CohensdFDR)';
     end
 
     if groupmean == 1
@@ -175,6 +188,14 @@ if lh == 1
     
     colorbar;
     light;
+    
+    figDir = fullfile(homeDir, 'figures/hormonal_figs');
+    imagewd = getframe(gcf); 
+    imwrite(imagewd.cdata, fullfile(figDir, sprintf('/lh_%s.tiff', name)));
+    imagewd = getframe(gcf); 
+    imwrite(imagewd.cdata, fullfile(figDir, sprintf('/lh_%s.png', name)));
+
+    close all
 
 end
 
@@ -197,8 +218,8 @@ if rh == 1
 
 
     if sexdiff == 1
-        load /Users/skuech/Documents/my_projects/female_gradients/output/results_hippocampus_rh_sexdiffs.mat;
-        data = (results.CohensdFDR)';
+        data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/hipposexFDRCohensd_rh.txt');
+        % data = (results.CohensdFDR)';
     end
 
     if groupmean == 1
@@ -206,7 +227,7 @@ if rh == 1
         data = groupmean_file.cdata;
     end
 
-        if low_estr == 1
+    if low_estr == 1
         data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_Menvslow-estr.txt');
     end
 
@@ -218,7 +239,8 @@ if rh == 1
         data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_Menvshigh-estr.txt');
     end
 
-        if high_estr == 1
+        
+    if high_estr == 1
         data = load('/Users/skuech/Documents/my_projects/female_gradients/output/hippocampus/rh_hippo_dFDR_Menvshigh-estr.txt');
     end
 
@@ -330,5 +352,8 @@ if rh == 1
     colorbar;
     light;
 
-
+    figDir = fullfile(homeDir, 'figures/hormonal_figs');
+    imagewd = getframe(gcf); 
+    imwrite(imagewd.cdata, fullfile(figDir, sprintf('/rh_%s.tiff', name)));
+    imwrite(imagewd.cdata, fullfile(figDir, sprintf('/rh_%s.png', name)));
 end

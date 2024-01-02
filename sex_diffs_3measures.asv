@@ -51,10 +51,11 @@ if loadold == 0
 
     %make keep to keep those with complete data
     keep = find(squeeze(mean(MPCnx1(:,1,1:400),3))>0);
-    % I unfortunately don't have all euler values. Thus, interpolate
+    
     euler_compl = fillmissing(eulerHCP.euler_HCP, 'movmean', 100);
-    euler_no = euler_compl(keep)';
-   
+    euler_no = eulerHCP.euler_HCP(keep)';
+    % I unfortunately don't have all euler values. Thus, interpolate
+    euler_no_compl = fillmissing(euler_no, 'movmean', 100);
 
     layers = female_gradients.MPC_layers1(keep,:,:); %T1T2w profiles
     ICV = unres.FS_IntraCranial_Vol(keep,:);
@@ -160,7 +161,6 @@ meant1t2cov = term(meant1t2persub);
 icvterm = term(ICV);
 sexterm = term(sex);
 ageterm = term(agekeep);
-eulerterm = term(euler_no);
 %icvterm = term(unres.FS_IntraCranial_Vol(keep));
 
 % save the covs 
@@ -168,7 +168,6 @@ covariates.meant1t2 = meant1t2persub;
 covariates.icv = ICV;
 covariates.sex = sex;
 covariates.age = agekeep;
-covariates.euler = euler_no;
 
 
 %% Sex difference Analysis for all 3 measures.
@@ -253,7 +252,7 @@ for m = 1:size(T1T2moments, 3)
 
         
     % set up linear model with covariates of sex, age and ICV 
-    M = 1 + sexterm + ageterm + icvterm + eulerterm;        
+    M = 1 + sexterm + ageterm + icvterm;        
     slm = SurfStatLinMod(T1T2moments(:,:,m),M);
     slm = SurfStatT(slm,sexterm.F-sexterm.M); %contrast is female - male
 
