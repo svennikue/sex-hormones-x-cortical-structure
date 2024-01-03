@@ -5,8 +5,8 @@
 % distributions of correlation between effect maps and vasculature maps
 
 saveall = 0;
-loadold = 1;
-plotfigs = 0;
+loadold = 0;
+plotfigs = 1;
 
 addpath(genpath('/Users/skuech/Documents/toolboxes'));
 homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';
@@ -108,7 +108,7 @@ for a = 1:2
        
         %first for main effects.
         map = mainresults.Cohensd(:,moment);
-        [rho, pval] = corr(map,vascular_map, 'type', 'spearman')
+        [rho, pval] = corr(map,vascular_map, 'type', 'spearman');
 %            if abs(rho) > .10
                 %spin test 
                 [p_spin, r_dist] = spin_test(map', vascular_map, 'surface_name',...
@@ -128,8 +128,8 @@ for a = 1:2
 
          % save values
          sexdiffresults.corr_atlas(a, moment, :) = rho; % save corr per model and measure
-         sexdiffresults.pval_atlas(a, moment, :) = p_spin; % save pval per model and measure
-         sexdiffresults.r_dist(a,moment,:) = r_dist; % save the permuted r distribution
+         sexdiffresults.pspin_atlas(a, moment, :) = p_spin; % save pval per model and measure
+         sexdiffresults.pval(a,moment,:) = pval; % save the initial pval
     
                 
         % then continue with the hormonal subgroups
@@ -160,8 +160,8 @@ for a = 1:2
                 % store results
                 hormresults.corr_atlas(a, moment, currmodel, :) = rho; % save corr per model and measure
                 hormresults.pval_atlas(a, moment, currmodel, :) = p_spin; % save pval per model and measure
-                hormresults.rdist_atlas(a, moment, currmodel, :) = r_dist;
-                
+                hormresults.rdist_atlas(a, moment, currmodel, :) = rho;
+                hormresults.pval_uncorr(a, moment, currmodel, :) = pval;
             end
         end
     end

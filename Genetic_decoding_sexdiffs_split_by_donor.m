@@ -6,7 +6,7 @@
 % makes use of a previously loaded transcriptomic map in schaefer400
 % parcellation from the BrainStat toolbox
 
-loadold = 0;
+loadold = 1;
 
 if loadold == 0
     clear all
@@ -19,6 +19,8 @@ male_donor = 0;
 all_donors = 1;
 old_donors = 0;
 
+% if bonferroni
+bonf = 1;
 
 saveall = 0;
 count = 0;
@@ -37,7 +39,30 @@ figDir = fullfile(homeDir, 'figures/HCP/gendec');
 addpath(figDir);
 
 if loadold == 1
-    load (fullfile(outDir, 'geneticdecoding.mat'))
+    load (fullfile(outDir, 'geneticdecoding_femdon.mat'));
+    femresults = [Steroidreceptorresults;Steroidsynthesisresults];
+    load (fullfile(outDir, 'geneticdecoding_maledon.mat'));
+    maleresults = [Steroidreceptorresults;Steroidsynthesisresults];
+    load (fullfile(outDir, 'geneticdecoding_allldons.mat'));
+    allresults = [Steroidreceptorresults;Steroidsynthesisresults];
+
+    idx_female_in_male = ismember(cellstr(femresults.Genes),cellstr(maleresults.Genes));
+    idx_female_in_all = ismember(cellstr(femresults.Genes),cellstr(allresults.Genes));
+    idx_all_in_male = ismember(cellstr(allresults.Genes),cellstr(maleresults.Genes));
+    
+    fem_male_corr_grad = corr(femresults.Gradient_corr(idx_female_in_male), maleresults.Gradient_corr, 'Type', 'Spearman');
+    fem_male_corr_skew = corr(femresults.Skew_corr(idx_female_in_male), maleresults.Skew_corr, 'Type', 'Spearman');
+    fem_male_corr_mean = corr(femresults.Mean_corr(idx_female_in_male), maleresults.Mean_corr, 'Type', 'Spearman');
+    
+    fem_all_corr_grad = corr(femresults.Gradient_corr(idx_female_in_all), allresults.Gradient_corr, 'Type', 'Spearman');
+    fem_all_corr_skew = corr(femresults.Skew_corr(idx_female_in_all), allresults.Skew_corr, 'Type', 'Spearman');
+    fem_all_corr_mean = corr(femresults.Mean_corr(idx_female_in_all), allresults.Mean_corr, 'Type', 'Spearman');
+    
+    male_all_corr_grad = corr(allresults.Gradient_corr(idx_all_in_male), maleresults.Gradient_corr, 'Type', 'Spearman');
+    male_all_corr_skew = corr(allresults.Skew_corr(idx_all_in_male), maleresults.Skew_corr, 'Type', 'Spearman');
+    male_all_corr_mean = corr(allresults.Mean_corr(idx_all_in_male), maleresults.Mean_corr, 'Type', 'Spearman');
+    
+
     keyboard
 end
 
@@ -179,6 +204,8 @@ for measure = 1:3
     transm_steroidrec(to_exclude,:) = NaN;
     transm_steroidrec(200:400,:) = NaN;
 
+    no_all_tests = size(transm_steroidrec, 2) + size(transm_steroidsynth, 2);
+
     % nan out these values plus the left hemisphere.
     t_schaefer_400(200:400,:) = NaN;
     t_schaefer_400(to_exclude) = NaN;
@@ -305,17 +332,29 @@ clear C yl xl pvals xpAll Ctmp Ctmp2 pvalstmp pvalstmp2 myLabeltmp myLabeltmp2
 Ctmp(:,3) = Steroidsynthesisresults.Gradient_corr;
 Ctmp(:,1) = Steroidsynthesisresults.Mean_corr;
 Ctmp(:,2) = Steroidsynthesisresults.Skew_corr;
-pvalstmp(:,3) = Steroidsynthesisresults.Gradient_pspin;
-pvalstmp(:,1) = Steroidsynthesisresults.Mean_pspin;
-pvalstmp(:,2) = Steroidsynthesisresults.Skew_pspin;
+if bonf == 1
+    pvalstmp(:,3) = Steroidsynthesisresults.Gradient_p;
+    pvalstmp(:,1) = Steroidsynthesisresults.Mean_p;
+    pvalstmp(:,2) = Steroidsynthesisresults.Skew_p;
+elseif bonf == 0
+    pvalstmp(:,3) = Steroidsynthesisresults.Gradient_pspin;
+    pvalstmp(:,1) = Steroidsynthesisresults.Mean_pspin;
+    pvalstmp(:,2) = Steroidsynthesisresults.Skew_pspin;
+end
 myLabeltmp = Steroidsynthesisresults.Genes;
 
 Ctmp2(:,3) = Steroidreceptorresults.Gradient_corr;
 Ctmp2(:,1) = Steroidreceptorresults.Mean_corr;
 Ctmp2(:,2) = Steroidreceptorresults.Skew_corr;
-pvalstmp2(:,3) = Steroidreceptorresults.Gradient_pspin;
-pvalstmp2(:,1) = Steroidreceptorresults.Mean_pspin;
-pvalstmp2(:,2) = Steroidreceptorresults.Skew_pspin;
+if bonf == 1
+    pvalstmp2(:,3) = Steroidreceptorresults.Gradient_p;
+    pvalstmp2(:,1) = Steroidreceptorresults.Mean_p;
+    pvalstmp2(:,2) = Steroidreceptorresults.Skew_p;
+elseif bonf == 0
+    pvalstmp2(:,3) = Steroidreceptorresults.Gradient_pspin;
+    pvalstmp2(:,1) = Steroidreceptorresults.Mean_pspin;
+    pvalstmp2(:,2) = Steroidreceptorresults.Skew_pspin;
+end
 myLabeltmp2 = Steroidreceptorresults.Genes; 
 
 baseline_r(1) = baselinecorr(1,1);
@@ -328,6 +367,7 @@ baseline_p(3) = baselinecorr(2,3);
 C = [Ctmp; Ctmp2; baseline_r];
 pvals = [pvalstmp; pvalstmp2; baseline_p];
 myLabel = [myLabeltmp; myLabeltmp2; 'baseline'];
+no_all_tests = size(myLabel,1);
 
 measureLabel = {'Profile Mean', 'Profile Skewness', 'Gradient'};
 
@@ -347,8 +387,14 @@ xAll(C==0)=nan; % eliminate cordinates for zero correlations
 
 xpAll = xAll;
 pvals = pvals';
-xpAll(pvals==0)=nan; % eliminate cordinates for non-sig pspin vals
-xpAll(pvals>0.05)=nan; % eliminate cordinates for pspin bigger 0.05 
+
+if bonf == 1
+    xpAll(pvals>0.05/no_all_tests)=nan; % eliminate cordinates for pspin bigger 0.05 
+elseif bonf == 0
+    xpAll(pvals==0)=nan; % eliminate cordinates for non-sig pspin vals
+    xpAll(pvals>0.05)=nan; % eliminate cordinates for pspin bigger 0.05 
+end
+
 % Set color of each rectangle
 % Set color scale
 cmap = colormap(flipud(cbrewer('div','RdBu',11)));
