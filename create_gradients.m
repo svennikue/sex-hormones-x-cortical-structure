@@ -3,6 +3,7 @@
 % Functions: schaefer parcellation toolbox, exportfigbo, brainspace toolbox
 
 count = 0;
+parcellation_glasser = true;
 
 % make a path to directory
 addpath(genpath('/Users/skuech/Documents/toolboxes'));
@@ -18,12 +19,21 @@ addpath(figDir);
 
 
 load('female_gradients.mat'); %1206 subjects
-MPCnx1 = female_gradients.MPCnx1; %basis for gradient                    
+MPCnx1 = female_gradients.MPCnx1; %basis for gradient
+if parcellation_glasser == true
+    load('glasser_hcp_ind.mat')
+    MPCnx1 = glasser_hcp_ind.mpc;
+end
 SN = female_gradients.SN;
 dataname = 'HCP_T1wT2w';
 
+if parcellation_glasser == true
+    dataname = 'HCP_glasser';
+end
+
+
 %make keep to keep those with complete data
-keep = find(squeeze(mean(MPCnx1(:,1,1:400),3))>0);
+keep = find(squeeze(mean(MPCnx1(:,1,1:size(MPCnx1,2)),3))>0);
 
 %make mean matrixes
 meanMPC = squeeze(mean(MPCnx1(keep,:,:)));
@@ -36,7 +46,7 @@ schaefer_400 = (fetch_parcellation('fsaverage5', 'schaefer', 400))';
 %% ANALYSIS 1.1.1: SEX COMPARISON, MPC GRADIENT computation  
 % Calculate gradient 
 % alignment of MPC to microstructural mean MPC data
-c1_tx =  zeros(size(MPCnx1, 1),400); %1206 subjects x 400 parcels
+c1_tx =  zeros(size(MPCnx1, 1),size(MPCnx1,2)); %1206 subjects x 400 parcels
 for i = 1:size(MPCnx1, 1) %for each subject
     i
     try
@@ -58,40 +68,42 @@ for i = 1:size(MPCnx1, 1) %for each subject
     end
 end
 
-% plot a sorted MPC for one subject
-[B, I] = sort(mean(c1_tx));
-for i = 1:400
-    x = I(i);
-    for j = 1:400
-        y = I(j);
-        sorted_M(i,j) = MPCnx1(size(MPCnx1, 1),x,y);
+if parcellation_glasser == false
+    % plot a sorted MPC for one subject
+    [B, I] = sort(mean(c1_tx));
+    for i = 1:size(MPCnx1,2)
+        x = I(i);
+        for j = 1:size(MPCnx1,2)
+            y = I(j);
+            sorted_M(i,j) = MPCnx1(size(MPCnx1, 1),x,y);
+        end
     end
+    
+    f = figure 
+    colormap(bone)
+    imagesc(sorted_M, [-0.5,3])
+    colorbar
+    set (gca, 'fontsize', 20, 'fontname', 'Calibri')
+    exportfigbo(f,[figDir, sprintf('%s_orderedMPC.png', dataname)],'png', 10)
+    count = count + 1
+    FigName{(count)} = sprintf('%s_orderedMPC.fig', dataname);
+    
+    
+    %mean MPC gradient
+    for i = 1:size(MPCnx1,2) %200 parcels per hemisphere
+        vertices(find(schaefer_400==i)) = mean(c1_tx(keep,i));
+    end
+    
+    
+    % plot the mean MPC gradient for all subjects 
+    f = figure,
+    BoSurfStatViewData(vertices,SN,'')
+    colormap((cbrewer('seq','Greens',11)))
+    SurfStatColLim([0 1])
+    exportfigbo(f,[figDir, sprintf('%s_MPC_G1.png', dataname)],'png', 10)
+    count = count + 1
+    FigName{(count)} = sprintf('%s_MPC_G1.fig', dataname);
 end
-
-f = figure 
-colormap(bone)
-imagesc(sorted_M, [-0.5,3])
-colorbar
-set (gca, 'fontsize', 20, 'fontname', 'Calibri')
-exportfigbo(f,[figDir, sprintf('%s_orderedMPC.png', dataname)],'png', 10)
-count = count + 1
-FigName{(count)} = sprintf('%s_orderedMPC.fig', dataname);
-
-
-%mean MPC gradient
-for i = 1:400 %200 parcels per hemisphere
-    vertices(find(schaefer_400==i)) = mean(c1_tx(keep,i));
-end
-
-
-% plot the mean MPC gradient for all subjects 
-f = figure,
-BoSurfStatViewData(vertices,SN,'')
-colormap((cbrewer('seq','Greens',11)))
-SurfStatColLim([0 1])
-exportfigbo(f,[figDir, sprintf('%s_MPC_G1.png', dataname)],'png', 10)
-count = count + 1
-FigName{(count)} = sprintf('%s_MPC_G1.fig', dataname);
 
 gradient.grad1persubj = {c1_tx};
 gradient.gm = {gm};
