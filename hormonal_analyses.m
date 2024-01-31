@@ -6,7 +6,7 @@
 % women in different phases of their menstrual cycle. 
 % this scripts requires to have run sex_diffs_3measures.m before
 
-loadold = 0;
+loadold = 1;
 
 if loadold == 0
     clear all
@@ -584,6 +584,117 @@ cohensd_gradient_mat(:, size(modelname,2)) = results.Cohensd(:,1)';
 [all_comps_gradient_cohensd,mean_grad,h,gnames] = multcompare(stats_d_gradient)
 
 tbl = array2table(mean_grad, "RowNames", modelname, "VariableNames", ["Mean", "Standard Error"])
+
+%% additional scatter plot for revision
+
+
+% modelname{1} = 'women: OC vs NC';
+% modelname{2} = 'Men vs NC women';
+% modelname{3} = 'Men vs OC women';
+% modelname{4} = 'women: high vs low estrogen';
+% modelname{5} = 'women: high vs low progesterone';
+% modelname{6} = 'Men vs high prog';
+% modelname{7} = 'Men vs low prog';
+% modelname{8} = 'Men vs high estr';
+% modelname{9} = 'Men vs low estr';
+
+% for skew
+% for i = 1:9
+%     datatest(i,:) = cohensd_profileskew{i};
+% end
+% % select only those that I want
+% data_wanted_models(1,:) = results.Cohensd(:,3)'; % main effect
+% data_wanted_models(2,:) = datatest(3,:); % men vs OC
+% for i = 6:9
+%     data_wanted_models(i-3,:) = datatest(i,:);
+% end
+
+for i = 1:9
+    datatest(i,:) = cohensd_gradient{i};
+end
+% select only those that I want
+data_wanted_models(1,:) = results.Cohensd(:,1)'; % main effect
+data_wanted_models(2,:) = datatest(3,:); % men vs OC
+for i = 6:9
+    data_wanted_models(i-3,:) = datatest(i,:);
+end
+
+
+% for mean
+% for i = 1:9
+%   datatest(i,:) = cohensd_profilemean{i};
+% end 
+
+% % select only those that I want
+% data_wanted_models(1,:) = results.Cohensd(:,2)'; % main effect
+% data_wanted_models(2,:) = datatest(3,:); % men vs OC
+% for i = 6:9
+%     data_wanted_models(i-3,:) = datatest(i,:);
+% end
+
+
+[vertices, label, colortablel] = ...
+  fs_read_annotation(['tpl-fsaverage_hemi-L_desc-types.annot']);
+parcel_left = label;
+label_left = label;
+for i = 1:size(colortablel.table, 1)
+  mycode = colortablel.table(i,5);
+  parcel_left(find(parcel_left == mycode)) = i;
+end
+ 
+[vertices, label, colortabler] = ...
+  fs_read_annotation(['tpl-fsaverage_hemi-R_desc-types.annot']);
+parcel_right = label;
+label_right = label;
+for i = 1:size(colortabler.table, 1)
+  mycode = colortabler.table(i,5);
+  parcel_right(find(parcel_right == mycode)) = i;
+end
+ 
+types_garcia = [parcel_left(1:10242); parcel_right(1:10242)];
+types_garcia = types_garcia';
+ 
+       
+% Generate sample data
+data = data_wanted_models';
+ 
+% Define colors for each data point
+load Cortical_types.mat;
+colors = types400;
+ 
+% Create a plot matrix with scatter and histograms
+figure;
+ 
+model_names = {'All Females - Males','OC F - M',...
+'High prog F - M','Low prog F - M','High Estr F - M','Low Estr F - M'};
+ 
+% Scatter plots
+for i = 1:size(data,2)
+  for j = 1:size(data,2)
+    subplot(size(data,2), size(data,2), (i - 1) * size(data,2) + j);
+    if i == j
+      % Diagonal - Histogram
+      % Diagonal - Density Plot
+      [f, xi] = ksdensity(data(:, i));
+      plot(xi, f, 'LineWidth', 2, 'Color', 'k');
+      title([model_names{i}]);
+    else
+      % Scatter plot
+      h = scatter(data(:, i), data(:, j), 10, colors, 'filled'),lsline;
+      colormap(colortabler.table(:,1:3)./256)
+      %title(['Variable ' num2str(i) ' vs Variable ' num2str(j)]);
+      if i < size(data,2)
+        xticks([]); % Remove x-axis labels for non-bottom subplots
+      end
+      if j > 1
+        yticks([]); % Remove y-axis labels for non-leftmost subplots
+      end
+    end
+  end
+end
+
+
+
 
 
 %% plot the results in the cloud-plots

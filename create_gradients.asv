@@ -19,17 +19,18 @@ addpath(figDir);
 
 
 load('female_gradients.mat'); %1206 subjects
-SN = female_gradients.SN;
-
+MPCnx1 = female_gradients.MPCnx1; %basis for gradient
 if parcellation_glasser == true
-    load('MPC_all_retest2.mat')
-    MPCnx1 = MPC_all_retest(:, [2:181, 183:362], [2:181, 183:362]);
+    load('MPC_all_glasser.mat')
+    %load('glasser_hcp_ind.mat')
+    MPCnx1 = MPC_all_retest;
+    %MPCnx1 = glasser_hcp_ind.mpc;
     dataname = 'HCP_glasser';
     load("parcels360.mat")
     glasser = (fetch_parcellation('fsaverage5', 'glasser', 360))'; 
 else
+    SN = female_gradients.SN;
     dataname = 'HCP_T1wT2w';
-    MPCnx1 = female_gradients.MPCnx1; %basis for gradient
     % load schaefer400 parcellation
     % careful! Now all parcels400 + 1 is schaefer_400
     schaefer_400 = (fetch_parcellation('fsaverage5', 'schaefer', 400))';
@@ -43,15 +44,6 @@ keep = find(squeeze(mean(MPCnx1(:,1,1:size(MPCnx1,2)),3))>0);
 meanMPC = squeeze(mean(MPCnx1(keep,:,:)));
 meanMPC(eye(size(meanMPC))==1) = 0;
 
-% plot mean
-f = figure 
-colormap(bone)
-imagesc(meanMPC, [-0.5,3])
-colorbar
-set (gca, 'fontsize', 20, 'fontname', 'Calibri')
-exportfigbo(f,[figDir, sprintf('%mean_MPC.png', dataname)],'png', 10)
-count = count + 1
-FigName{(count)} = sprintf('%mean_MPC.fig', dataname);
 
 %% ANALYSIS 1.1.1: SEX COMPARISON, MPC GRADIENT computation  
 % Calculate gradient 
@@ -115,29 +107,33 @@ if parcellation_glasser == false
     FigName{(count)} = sprintf('%s_MPC_G1.fig', dataname);
 end
 
-if parcellation_glasser == true
+if parcellation_glasser == true;
+    vertices = zeros(20484,1);
     to_surface = zeros(20484,1);
-    % 2:181 + 183:362
-    for i = 1:180 % to exclude medial wall
+    to_surface = zeros(20484,1);
+    for i = 1:180
       to_surface(parcels360x==i+1) = mean(c1_tx(keep,i));
     end
-    for i = 1:180 % to exclude medial wall
+    for i = 1:180
       to_surface(parcels360x==i+182) = mean(c1_tx(keep,i+180));
     end
 
+%     for i = 1:size(c1_tx,2) %200 parcels per hemisphere
+%         vertices(find(parcels360x==i)) = mean(c1_tx(keep,i));
+%     end
+        % plot the mean MPC gradient for all subjects 
     f = figure,
     BoSurfStatViewData(to_surface,SN,'')
     colormap((cbrewer('seq','Greens',11)))
     SurfStatColLim([0 1])
     exportfigbo(f,[figDir, sprintf('%s_MPC_G1.png', dataname)],'png', 10)
+    count = count + 1
     FigName{(count)} = sprintf('%s_MPC_G1.fig', dataname);
 end
 
 
 gradient.grad1persubj = {c1_tx};
 gradient.gm = {gm};
-
-
 
 
 %% Save all results

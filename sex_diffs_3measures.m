@@ -6,7 +6,7 @@
 % output: sex differences in the 3 microstructural measures, figures
 % functions:exportfigbo, BoSurfStatViewData, cbrewer, Surfstat 
 
-loadold = 1;
+loadold = 0;
 if loadold == 0
     clear all
     close all
@@ -80,7 +80,7 @@ if loadold == 0
 
 else if loadold == 1        
     % alternatively: load complete mat from running this script last time. 
-    load('main_effects_sexdiffs.mat');
+    load('HCP_T1wT2w_main_effects_sexdiffs.mat');
     keyboard
     end
 end
@@ -314,7 +314,14 @@ end
 % correlation between skewsness sex-diffs and mean sex-diffs: r = -.4120
 mean_sex_diffs = results.Cohensd(:,2);
 skew_sex_diffs = results.Cohensd(:,3);
-corr_mean_skew_sexdiffs = corr(mean_sex_diffs, skew_sex_diffs)
+corr_mean_skew_sexdiffs = corr(mean_sex_diffs, skew_sex_diffs);
+[rho,pval] = corr(mean_sex_diffs, skew_sex_diffs, 'Type', 'Spearman', 'rows', 'complete');
+
+% spin permutation testing
+[p_spin, r_dist] = spin_test(mean_sex_diffs, skew_sex_diffs, 'surface_name',...
+    'fsa5', 'parcellation_name', 'schaefer_400', 'n_rot', 1000, ...
+    'type', 'Spearman');
+% p_spin is 0.0090
 
 % parcel-wise correlation between skew and mean, all males
 mean_males = T1T2moments(keepmale, :, 2);
@@ -374,21 +381,6 @@ colormap(flipud(cbrewer('div','RdBu',11)))
 SurfStatColLim([-1 1])
 %SurfStatColLim(clim)
 exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
-
-% and a figure that shows the link between each measure and ICV (eTIV)
-
-for i = 1:400 %200 parcels per hemisphere
-    vertices(find(schaefer_400==i)) = ICV(i);
-end
-
-f = figure,
-BoSurfStatViewData(vertices,SN,'')
-colormap(flipud(cbrewer('div','RdBu',11)))
-%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
-SurfStatColLim([-1 1])
-%SurfStatColLim(clim)
-exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
-
 
 
 %% Save all results

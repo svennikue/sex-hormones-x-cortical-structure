@@ -34,19 +34,23 @@ addpath(figDir);
 
 %% loading data
 if loadold == 0
-    % load glasser parcellation
-    glasser = (fetch_parcellation('fsaverage5', 'glasser', 360))';    
-    dataname = 'glasser_360_hcp';
+    dataname = 'HCP_glasser';
 
     load('female_gradients.mat'); %1206 subjects
     D1 = female_gradients.D1;                                  
     unres = female_gradients.unres;                                        
     SN = female_gradients.SN;
     
-    load('glasser_hcp_ind.mat')
-    MPCnx1 = glasser_hcp_ind.mpc;
-    layers = glasser_hcp_ind.I;
+    load('MPC_layers_retest2.mat')
+    layers = MPC_layers_retest;
 
+    % load glasser parcellation
+    load('parcels360.mat')
+    
+    % gradient for mean matrices
+    load('MPC_all_retest2.mat')
+    MPCnx1 = MPC_all_retest(:, [2:181, 183:362], [2:181, 183:362]);
+    
     MPC_schaffer = female_gradients.MPCnx1; %basis for gradient                   
     %make keep to keep those with complete data
     keep_schaffer = find(squeeze(mean(MPC_schaffer(:,1,1:400),3))>0);
@@ -57,20 +61,22 @@ if loadold == 0
     
     % first compute the measure before getting keep.
     T1T2moments(:,:,1) = c1_tx; % first moment is gradient
-
+    
+    %clear T1T2moments
     for i = 1:size(c1_tx,1)
         % subjects x parcels x moments
-        T1T2moments(i,:,2) = mean(squeeze(layers(i,2:11,:))); % second moment is mean
-        T1T2moments(i,:,3) = skewness(squeeze(layers(i,2:11,:))); % third moment is skewness
-        T1T2moments(i,:,3) = rescale(T1T2moments(i,:,3));
+        T1T2moments(i,:,2) = mean(squeeze(layers(i,2:11,[2:181, 183:362]))); % second moment is mean
+        T1T2moments(i,:,3) = skewness(squeeze(layers(i,2:11,[2:181, 183:362]))); % third moment is skewness
+        %T1T2moments(i,:,3) = rescale(T1T2moments(i,:,3));
         % calculate mean of 10 MPC layers for each subject (for cov)
-        meant1t2(i,:) = mean(squeeze(layers(i,2:11,:)));
+        meant1t2(i,:) = mean(squeeze(layers(i,2:11,[2:181, 183:362])));
     end
 
     %make keep to keep those with complete data
     keep_grad = find(mean(T1T2moments(:,:,1),2) ~= 0 & ~any(isnan(T1T2moments(:,:,1)), 2));
     keep_mean = find(mean(T1T2moments(:,:,2),2) ~= 0 & ~any(isnan(T1T2moments(:,:,2)), 2));
     keep_skew = find(mean(T1T2moments(:,:,3),2) ~= 0 & ~any(isnan(T1T2moments(:,:,3)), 2));
+    %keep = intersect(keep_mean, keep_skew)
     keep = intersect(keep_schaffer, intersect(keep_grad, intersect(keep_mean, keep_skew)));
     
     T1T2moments = T1T2moments(keep,:,:);
@@ -108,7 +114,7 @@ end
 %% Plot method.
 
 f = figure,
-BoSurfStatViewData(glasser,SN,'')
+BoSurfStatViewData(parcels360x,SN,'')
 colormap((cbrewer('qual','Set3',11)))
 count = count + 1
 FigName{(count)} = 'glasser_parcellation.png';
@@ -180,7 +186,7 @@ covariates.euler = euler_no;
 
 %% Sex difference Analysis for all 3 measures.
 for m = 1:size(T1T2moments, 3)
- %for m = 3
+    %for m = 3
     if m == 1
         namemoment = 'gradient';
     else if m == 2
@@ -191,13 +197,17 @@ for m = 1:size(T1T2moments, 3)
         end
     end
 
-    % plot group average
-    vertices = zeros(20484,1);
-    for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-        vertices(find(glasser==i)) = mean(T1T2moments(:,i,m));
+    to_surface = zeros(20484,1);
+    % 2:181 + 183:362
+    for i = 1:180 % to exclude medial wall
+      to_surface(parcels360x==i+1) = mean(T1T2moments(:,i,m));
     end
+    for i = 1:180 % to exclude medial wall
+      to_surface(parcels360x==i+182) = mean(T1T2moments(:,i+180,m));
+    end
+    
     f = figure,
-    BoSurfStatViewData(vertices,SN,'')
+    BoSurfStatViewData(to_surface,SN,'')
     %colormap((cbrewer('seq','Greys',11)))
     colormap((cbrewer('seq','Greens',11)))
     clim = [prctile(mean(T1T2moments(:,:,m)),5) prctile(mean(T1T2moments(:,:,m)),95)]; % set colour limits
@@ -276,13 +286,16 @@ for m = 1:size(T1T2moments, 3)
     CohensdFDR = (Cohensd.*h)'; % mask only those that were FDR corrected
     
     % plot sex difference EFFECT SIZE FDR corrected
-    vertices = zeros(20484,1);
-    for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-        vertices(find(glasser==i)) = Cohensd(i)*h(i);
+    for i = 1:180 % to exclude medial wall
+      to_surface(parcels360x==i+1) =  Cohensd(i)*h(i);
     end
+    for i = 1:180 % to exclude medial wall
+      to_surface(parcels360x==i+182) =  Cohensd(i+180)*h(i+180);
+    end
+
     
     f = figure,
-    BoSurfStatViewData(vertices,SN,'')
+    BoSurfStatViewData(to_surface,SN,'')
     colormap(flipud(cbrewer('div','RdBu',11)))
     %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
     SurfStatColLim([-1 1])
@@ -317,6 +330,7 @@ for m = 1:size(T1T2moments, 3)
     
 end
 
+
 %% Add analysis: correlation between Mean and Skewness
 
 % correlation between skewsness sex-diffs and mean sex-diffs: r = -.4120
@@ -331,12 +345,16 @@ corr_males_mean_skew_avg = corrcoef(mean_males, skew_males)
 corr_males_mean_skew_mtx = corr(mean_males, skew_males);
 corr_males_mean_skew = diag(corr_males_mean_skew_mtx);
 
-for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-    vertices(find(glasser==i)) = corr_males_mean_skew(i);
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+1) =  corr_males_mean_skew(i);
+end
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+182) =  corr_males_mean_skew(i+180);
 end
 
+
 f = figure,
-BoSurfStatViewData(vertices,SN,'')
+BoSurfStatViewData(to_surface,SN,'')
 colormap(flipud(cbrewer('div','RdBu',11)))
 %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
 SurfStatColLim([-1 1])
@@ -351,12 +369,17 @@ corr_females_mean_skew_avg = corrcoef(mean_females, skew_females)
 corr_females_mean_skew_mtx = corr(mean_females, skew_females);
 corr_females_mean_skew = diag(corr_females_mean_skew_mtx);
 
-for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-    vertices(find(glasser==i)) = corr_females_mean_skew(i);
+
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+1) =  corr_females_mean_skew(i);
+end
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+182) =  corr_females_mean_skew(i+180);
 end
 
+
 f = figure,
-BoSurfStatViewData(vertices,SN,'')
+BoSurfStatViewData(to_surface,SN,'')
 colormap(flipud(cbrewer('div','RdBu',11)))
 %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
 SurfStatColLim([-1 1])
@@ -371,26 +394,17 @@ corr_all_mean_skew_avg = corrcoef(mean_all, skew_all)
 corr_all_mean_skew_mtx = corr(mean_all, skew_all);
 corr_all_mean_skew = diag(corr_all_mean_skew_mtx);
 
-for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-    vertices(find(glasser==i)) = corr_all_mean_skew(i);
+
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+1) =  corr_all_mean_skew(i);
+end
+for i = 1:180 % to exclude medial wall
+  to_surface(parcels360x==i+182) =  corr_all_mean_skew(i+180);
 end
 
-f = figure,
-BoSurfStatViewData(vertices,SN,'')
-colormap(flipud(cbrewer('div','RdBu',11)))
-%clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
-SurfStatColLim([-1 1])
-%SurfStatColLim(clim)
-exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
-
-% and a figure that shows the link between each measure and ICV (eTIV)
-
-for i = 1:size(c1_tx,2) %200 parcels per hemisphere
-    vertices(find(glasser==i)) = ICV(i);
-end
 
 f = figure,
-BoSurfStatViewData(vertices,SN,'')
+BoSurfStatViewData(to_surface,SN,'')
 colormap(flipud(cbrewer('div','RdBu',11)))
 %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
 SurfStatColLim([-1 1])
@@ -404,8 +418,8 @@ exportfigbo(f,[figDir, sprintf('/%s_corr_all_mean_skew%s')],'png', 10)
 
 if saveall == 1
     disp(' ...saving results')
-    save(fullfile(outDir, sprintf('%s_main_effects_sexdiffs.mat', dataname)));
-    save((fullfile(outDir, sprintf('%s_sexdiffsmaps.mat', dataname))), 'T1T2moments', 'results', 'covariates', 'keep');    
+    save(fullfile(outDir, sprintf('%s_main_effects_sexdiffs_glasser.mat', dataname)));
+    save((fullfile(outDir, sprintf('%s_sexdiffsmaps_glasser.mat', dataname))), 'T1T2moments', 'results', 'covariates', 'keep');    
     FigList = findobj(allchild(0), 'flat','Type','figure');
     for iFig = 1:length(FigList)
         FigHandle = FigList(iFig);
@@ -414,4 +428,3 @@ if saveall == 1
 end
 
 disp(' ...done!:)')
-
