@@ -6,7 +6,7 @@
 % women in different phases of their menstrual cycle. 
 % this scripts requires to have run sex_diffs_3measures.m before
 
-loadold = 1;
+loadold = 0;
 
 if loadold == 0
     clear all
@@ -304,8 +304,8 @@ for modelnumber = 1:9
     end
        
     % start with the analysis for all 3 measures.
-    for moment = 1 % or only choose one
-    % for moment = 1:size(T1T2moments, 3) 
+    %for moment = 1 % or only choose one
+    for moment = 1:size(T1T2moments, 3) 
         % ADJUST MODEL WITHOUT MEANT1T2!!
         M = 1 + groupcompterm + ageterm + icvterm;
          %M = 1 + meant1t2cov + groupcompterm + ageterm + icvterm;
@@ -609,10 +609,11 @@ tbl = array2table(mean_grad, "RowNames", modelname, "VariableNames", ["Mean", "S
 %     data_wanted_models(i-3,:) = datatest(i,:);
 % end
 
+% for gradient
 for i = 1:9
     datatest(i,:) = cohensd_gradient{i};
 end
-% select only those that I want
+%select only those that I want
 data_wanted_models(1,:) = results.Cohensd(:,1)'; % main effect
 data_wanted_models(2,:) = datatest(3,:); % men vs OC
 for i = 6:9
@@ -620,11 +621,11 @@ for i = 6:9
 end
 
 
-% for mean
+%for mean
 % for i = 1:9
 %   datatest(i,:) = cohensd_profilemean{i};
 % end 
-
+% 
 % % select only those that I want
 % data_wanted_models(1,:) = results.Cohensd(:,2)'; % main effect
 % data_wanted_models(2,:) = datatest(3,:); % men vs OC
@@ -678,10 +679,16 @@ for i = 1:size(data,2)
       [f, xi] = ksdensity(data(:, i));
       plot(xi, f, 'LineWidth', 2, 'Color', 'k');
       title([model_names{i}]);
+      xlim([-0.5 0.5])
+      ylim([0 4])
+      xline(0)
     else
       % Scatter plot
       h = scatter(data(:, i), data(:, j), 10, colors, 'filled'),lsline;
       colormap(colortabler.table(:,1:3)./256)
+      xlim([-0.5 0.5])
+      ylim([-0.5 0.5])
+      yline(0)
       %title(['Variable ' num2str(i) ' vs Variable ' num2str(j)]);
       if i < size(data,2)
         xticks([]); % Remove x-axis labels for non-bottom subplots

@@ -153,6 +153,7 @@ for i = 1:size(keep,1)
     meant1t2(i,:) = mean(squeeze(layers(i,2:11,:)));
 end
 
+
 % set up all covariates
 meant1t2persub = mean(meant1t2,2); % mean over the whole cortex
 meant1t2cov = term(meant1t2persub);  
@@ -289,6 +290,28 @@ for m = 1:size(T1T2moments, 3)
     bigmen = find(CohensdFDR<0);
     bigmeneffect = mean(CohensdFDR(bigmen)); %-0.3154
     
+    % correlation between
+    % compute correlation between eTIV (ICV) and measures.
+
+    corr_ICV_microstructur(:,m) = corr(T1T2moments(:,:,m), ICV);
+    
+    % plot correlation between measure and ICV
+    vertices = zeros(20484,1);
+    for i = 1:400 %200 parcels per hemisphere
+        vertices(find(schaefer_400==i)) = corr_ICV_microstructur(i,m);
+    end
+    
+    f = figure,
+    BoSurfStatViewData(vertices,SN,'')
+    colormap(flipud(cbrewer('div', 'PiYG',11)))
+    %clim = [prctile(mean(slm.t),5) prctile(mean(slm.t),95)]; % set colour limits
+    SurfStatColLim([-1 1])
+    %SurfStatColLim(clim)
+    exportfigbo(f,[figDir, sprintf('/%s_fem-mal_FDRCohensD_%s', dataname, namemoment)],'png', 10)
+    count = count + 1
+    FigName{(count)} = sprintf('%s_fem-mal_FDRCohensD_%s.fig', dataname, namemoment);
+    
+
     % store results
     results.tvals(:,m) = (slm.t)';
     results.FDR(:,m) = (slm.t.*h)';
