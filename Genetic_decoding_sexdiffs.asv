@@ -233,9 +233,11 @@ save(fullfile(outDir, 'geneticdecoding.mat'), 'Steroidreceptorresults', 'Steroid
 %% FDR Correction a la Benjamini Hochberg
 % or reshape
 
-pValues = [Steroidsynthesisresults.Gradient_pspin; Steroidsynthesisresults.Mean_pspin; Steroidsynthesisresults.Skew_pspin; 
-    Steroidreceptorresults.Gradient_pspin; Steroidreceptorresults.Mean_pspin; Steroidreceptorresults.Skew_pspin];
-h = fdr_bh(pValues,0.05);
+pValues = [Steroidsynthesisresults.Gradient_pspin; Steroidsynthesisresults.Mean_pspin; Steroidsynthesisresults.Skew_pspin; ];
+
+
+pValues = reshape(pValues, 1, []);
+h = fdr_bh(pValues,0.05)
 
 for measure = 1:3
     pValues = pvals(measure,:);
@@ -323,12 +325,8 @@ xAll(C==0)=nan; % eliminate cordinates for zero correlations
 
 xpAll = xAll;
 pvals = pvals';
-xpAll(pvals>0.05)=nan;% eliminate cordinates for non-sig pspin vals
-
-%xpAll(pvals==0)=nan; 
-
-
-%xpAll(pvals>(0.05/26))=nan; % eliminate cordinates for pspin bigger 0.05 
+xpAll(pvals==0)=nan; % eliminate cordinates for non-sig pspin vals
+xpAll(pvals>(0.05/26))=nan; % eliminate cordinates for pspin bigger 0.05 
 % Set color of each rectangle
 % Set color scale
 cmap = colormap(flipud(cbrewer('div','RdBu',11)));

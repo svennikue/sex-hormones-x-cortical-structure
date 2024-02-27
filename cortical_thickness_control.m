@@ -87,7 +87,7 @@ for m = 1:3
     end
     end
       f=figure,
-      scatter(Cohensd_ct,results.Cohensd(:,m),'k','filled'),lsline,
+      scatter(Cohensd_ct,results.Cohensd(:,m),'k','filled'),lsline, set (gca, 'fontsize', 40, 'fontname', 'Calibri')
       [rho,pval] = corr(results.Cohensd(:,m), Cohensd_ct', 'Type', 'Spearman', 'rows', 'complete');
     
        [p_spin, r_dist] = spin_test(results.Cohensd(:,m)', Cohensd_ct, 'surface_name',...
@@ -98,7 +98,7 @@ for m = 1:3
         his = histogram(r_dist, 50, 'Normalization', 'pdf', 'edgecolor', 'w', ...
              'facealpha', 1, 'linewidth', 0.5);
         l = line(rho, 3,'Color', 'k','LineStyle', '-', 'Marker', 'o', 'MarkerFaceColor', 'k');
-        set (gca, 'fontsize', 50, 'fontname', 'Calibri')
+        set (gca, 'fontsize', 40, 'fontname', 'Calibri')
         xlabel(['Null correlations' newline (sprintf('(%s)', namemoment))])
         xlim([-0.5, 0.5]);
         legend(l,['{\it r}=' num2str(round(rho, 2)) newline ...

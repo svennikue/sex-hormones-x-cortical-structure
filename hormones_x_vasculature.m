@@ -4,9 +4,8 @@
 % output: spatial correlations, spin-corrected pvalues and spin-rho
 % distributions of correlation between effect maps and vasculature maps
 
-saveall = 0;
 loadold = 0;
-plotfigs = 1;
+saveall = 1;
 
 addpath(genpath('/Users/skuech/Documents/toolboxes'));
 homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';
@@ -25,7 +24,6 @@ if loadold == 0
     close all
     loadold = 0;
     saveall = 1;
-    plotfigs = 1;
     % make a path to directory
     addpath(genpath('/Users/skuech/Documents/toolboxes'));
     homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';
@@ -137,36 +135,44 @@ for a = 1:2
             map = map_dvals{currmodel};
             % correlate stat map and vasculature
             [rho, pval] = corr(map',vascular_map, 'type', 'spearman')
-            if abs(rho) > .10
-                %spin test 
-                [p_spin, r_dist] = spin_test(map', vascular_map, 'surface_name',...
-                'fsa5', 'parcellation_name', 'schaefer_400', 'n_rot', 1000, ...
-                'type', 'spearman');
+            %if abs(rho) > .10
+            %spin test 
+            [p_spin, r_dist] = spin_test(map', vascular_map, 'surface_name',...
+            'fsa5', 'parcellation_name', 'schaefer_400', 'n_rot', 1000, ...
+            'type', 'spearman');
 
-               % plot null distributions, correlation, and spin-p vals    
-                f = figure
-                his = histogram(r_dist, 50, 'Normalization', 'pdf', 'edgecolor', 'w', ...
-                                'facealpha', 1, 'linewidth', 0.5);
-                l = line(rho, 1.7,'Color', 'k','LineStyle', '-', 'Marker', 'o', 'MarkerFaceColor', 'k');
-                xlabel(['Null correlations' newline (sprintf('(%s and %s for model %d)', nameatlas, namemoment, currmodel))])
-                xlim([-0.55, 0.55]);
-                legend(l,['{\it r}=' num2str(round(rho, 2)) newline ...
-                                  '{\it p}=' num2str(round(p_spin,3 ))], 'Location', 'northwest')
-                set (gca, 'fontsize', 20, 'fontname', 'Calibri');
-                exportfigbo(f,[figDir, sprintf('/Vasc_%s_spin_%s_model%d.fig', nameatlas, namemoment, currmodel)],'png', 10)
-                count = count + 1;
-                FigName{(count)} = sprintf('/Vasc_%s_spin_%s_model%d.png', nameatlas, namemoment, currmodel);
+            % plot null distributions, correlation, and spin-p vals    
+            f = figure
+            his = histogram(r_dist, 50, 'Normalization', 'pdf', 'edgecolor', 'w', ...
+                            'facealpha', 1, 'linewidth', 0.5);
+            l = line(rho, 1.7,'Color', 'k','LineStyle', '-', 'Marker', 'o', 'MarkerFaceColor', 'k');
+            xlabel(['Null correlations' newline (sprintf('(%s and %s for model %d)', nameatlas, namemoment, currmodel))])
+            xlim([-0.55, 0.55]);
+            legend(l,['{\it r}=' num2str(round(rho, 2)) newline ...
+                              '{\it p}=' num2str(round(p_spin,3 ))], 'Location', 'northwest')
+            set (gca, 'fontsize', 20, 'fontname', 'Calibri');
+            exportfigbo(f,[figDir, sprintf('/Vasc_%s_spin_%s_model%d.fig', nameatlas, namemoment, currmodel)],'png', 10)
+            count = count + 1;
+            FigName{(count)} = sprintf('/Vasc_%s_spin_%s_model%d.png', nameatlas, namemoment, currmodel);
 
-                % store results
-                hormresults.corr_atlas(a, moment, currmodel, :) = rho; % save corr per model and measure
-                hormresults.pval_atlas(a, moment, currmodel, :) = p_spin; % save pval per model and measure
-                hormresults.rdist_atlas(a, moment, currmodel, :) = rho;
-                hormresults.pval_uncorr(a, moment, currmodel, :) = pval;
-            end
+            % store results
+            hormresults.corr_atlas(a, moment, currmodel, :) = rho; % save corr per model and measure
+            hormresults.pval_atlas(a, moment, currmodel, :) = p_spin; % save pval per model and measure
+            hormresults.rdist_atlas(a, moment, currmodel, :) = rho;
+            hormresults.pval_uncorr(a, moment, currmodel, :) = pval;
+            %end
         end
     end
 end
 
+%% FDR Correction a la Benjamini Hochberg
+pValues_horm = reshape(hormresults.pval_atlas, 1, []);
+h_horm = fdr_bh(pValues_hrom,0.05); % if h is 1, then significant.
+H_horm = reshape(h_horm, 2, 3, 9);
+
+h_sexd = fdr_bh(sexdiffresults.pspin_atlas,0.05); % if h is 1, then significant.
+
+% none of the relevant models (3, 6,7,8,9) or main effects survive FDR 
 
 %% Save all results
 

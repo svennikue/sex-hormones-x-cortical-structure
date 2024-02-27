@@ -352,6 +352,8 @@ skew_males = T1T2moments(keepmale, :, 3);
 corr_males_mean_skew_avg = corrcoef(mean_males, skew_males)
 corr_males_mean_skew_mtx = corr(mean_males, skew_males);
 corr_males_mean_skew = diag(corr_males_mean_skew_mtx);
+mean(corr_males_mean_skew)
+std(corr_males_mean_skew)
 
 for i = 1:400 %200 parcels per hemisphere
     vertices(find(schaefer_400==i)) = corr_males_mean_skew(i);
@@ -372,6 +374,8 @@ skew_females = T1T2moments(keepfemale, :, 3);
 corr_females_mean_skew_avg = corrcoef(mean_females, skew_females)
 corr_females_mean_skew_mtx = corr(mean_females, skew_females);
 corr_females_mean_skew = diag(corr_females_mean_skew_mtx);
+mean(corr_females_mean_skew)
+std(corr_females_mean_skew)
 
 for i = 1:400 %200 parcels per hemisphere
     vertices(find(schaefer_400==i)) = corr_females_mean_skew(i);
