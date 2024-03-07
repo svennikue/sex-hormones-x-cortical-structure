@@ -180,6 +180,72 @@ PC(to_exclude) = NaN;
 PC(200:400) = NaN;
 % now, correlation of PC brain genes with effect maps
 
+
+%% Compute general overlap with sex-hormone related genes
+load HCP_T1wT2w_sexdiffsmaps.mat
+
+per_mom(1000,1) = load('gradient_perm.mat')
+per_mom(1000,2) = load('profile_mean_perm.mat')
+per_mom(1000,3) = load('skew_perm.mat')
+
+% and addtional GLM.
+repo = zeros(1000,3);
+for measure = 1:3
+    if measure == 1                
+    namemoment = 'gradient';
+    else if measure == 2
+        namemoment = 'profile_mean';
+        else if measure == 3
+            namemoment = 'profile_skewness';
+            end
+        end
+    end
+    X = [transm_steroidsynth, transm_steroidrec];
+
+    y = results.tvals(:,measure); %
+    labels = [labels_steroidsynth; labels_steroidrec];
+    % Convert to a table
+    T = array2table(X, 'VariableNames', labels);
+    % Add the response variable to the table
+    T.ResponseVar = y;
+    % Start with the response variable part of the formula
+    formula = 'ResponseVar ~ ';
+    % Add each predictor to the formula
+    for i = 1:length(labels)
+        formula = [formula labels{i}];
+        if i < length(labels)
+            formula = [formula ' + ']; % Add + between predictors
+        end
+    end
+    mdl = fitglm(T, formula);
+    trueF(:,measure) = mdl.devianceTest{:,'FStat'}(2);
+    % Display the model summary
+    namemoment(measure)
+    for j = 1:1000
+        j
+        y = x_perm(:,j); % Your 400x1 response vector t_schaefer_400(:, 2); %
+        labels = [labels_steroidsynth; labels_steroidrec];
+        % Convert to a table
+        T = array2table(X, 'VariableNames', labels);
+        % Add the response variable to the table
+        T.ResponseVar = y;
+        % Start with the response variable part of the formula
+        formula = 'ResponseVar ~ ';
+        % Add each predictor to the formula
+        for i = 1:length(labels)
+            formula = [formula labels{i}];
+            if i < length(labels)
+                formula = [formula ' + ']; % Add + between predictors
+            end
+        end
+        mdl = fitglm(T, formula);
+        repo(j,measure) = mdl.devianceTest{:,'FStat'}(2);
+    end
+    %disp(mdl);
+    %h = fdr_bh(mdl.Coefficients.pValue,0.05)
+    sum(repo(:,measure) > trueF(:,measure))./1000
+end
+
 %% Genes of interest spatial correlations.
 
 load HCP_T1wT2w_sexdiffsmaps.mat

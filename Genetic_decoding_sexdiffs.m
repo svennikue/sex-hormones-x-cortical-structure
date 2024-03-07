@@ -107,6 +107,73 @@ PC(to_exclude) = NaN;
 PC(200:400) = NaN;
 % now, correlation of PC brain genes with effect maps
 
+%% First, compute if sex-hormone genes generally relate to the sex diffs effects
+namemoment = ["gradient"; "profile_mean";"profile_skewness"];
+load HCP_T1wT2w_sexdiffsmaps.mat
+
+% load randomly spun maps
+perms_grad = load('gradient_perm.mat')
+tmp = load('gradient_perm.mat')
+per_mom(:,:,1) = tmp.x_perm;
+tmp = load('profile_mean_perm.mat')
+per_mom(:,:,2) = tmp.x_perm;
+tmp = load('skew_perm.mat')
+per_mom(:,:,3) = tmp.x_perm;
+
+% and addtional GLM.
+repo = zeros(1000,3);
+finalFp = zeros(3,1);
+
+for measure = 1:3
+    X = [transm_steroidsynth, transm_steroidrec];
+    labels = [labels_steroidsynth; labels_steroidrec];
+    % only synthesis finalFp = 0.2600 0.0850 0.6480
+    % only receptors finalFp = 0.7470 0.0160 0.7000
+
+    % only receptors
+    y = results.tvals(:,measure); %sex diff result maps
+    % Convert to a table
+    T = array2table(X, 'VariableNames', labels);
+    % Add the response variable to the table
+    T.ResponseVar = y;
+    % Start with the response variable part of the formula
+    formula = 'ResponseVar ~ ';
+    % Add each predictor to the formula
+    for i = 1:length(labels)
+        formula = [formula labels{i}];
+        if i < length(labels)
+            formula = [formula ' + ']; % Add + between predictors
+        end
+    end
+    mdl = fitglm(T, formula);
+    trueF(:,measure) = mdl.devianceTest{:,'FStat'}(2);
+    % Display the model summary
+    namemoment(measure)
+    for j = 1:1000
+        y = per_mom(:,j,measure); % Your 400x1 response vector t_schaefer_400(:, 2); %
+        % Convert to a table
+        T = array2table(X, 'VariableNames', labels);
+        % Add the response variable to the table
+        T.ResponseVar = y;
+        % Start with the response variable part of the formula
+        formula = 'ResponseVar ~ ';
+        % Add each predictor to the formula
+        for i = 1:length(labels)
+            formula = [formula labels{i}];
+            if i < length(labels)
+                formula = [formula ' + ']; % Add + between predictors
+            end
+        end
+        mdl = fitglm(T, formula);
+        repo(j,measure) = mdl.devianceTest{:,'FStat'}(2);
+    end
+    %disp(mdl);
+    %h = fdr_bh(mdl.Coefficients.pValue,0.05)
+    finalFp(measure) = sum(repo(:,measure) > trueF(:,measure))./1000
+
+end
+
+
 %% Genes of interest spatial correlations.
 namemoment = ["gradient"; "profile_mean";"profile_skewness"];
 load HCP_T1wT2w_sexdiffsmaps.mat
@@ -240,38 +307,6 @@ h = fdr_bh(pValues,0.05);
 for measure = 1:3
     pValues = pvals(measure,:);
     h = fdr_bh(pValues,0.05); % if h is 1, then significant.
-end
-
-%% and addtional GLM.
-for measure = 1:3
-    X = [transm_steroidsynth, transm_steroidrec];
-    y = t_schaefer_400(:, measure); % Your 400x1 response vector
-    labels = [labels_steroidsynth; labels_steroidrec];
-    
-    % Convert to a table
-    T = array2table(X, 'VariableNames', labels);
-    
-    % Add the response variable to the table
-    T.ResponseVar = y;
-    
-    % Start with the response variable part of the formula
-    formula = 'ResponseVar ~ ';
-    
-    % Add each predictor to the formula
-    for i = 1:length(labels)
-        formula = [formula labels{i}];
-        if i < length(labels)
-            formula = [formula ' + ']; % Add + between predictors
-        end
-    end
-  
-    mdl = fitglm(T, formula);
-    
-    % Display the model summary
-    namemoment(measure)
-    disp(mdl);
-    
-    h = fdr_bh(mdl.Coefficients.pValue,0.05)
 end
 
 %% Plotting 
