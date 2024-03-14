@@ -6,7 +6,7 @@
 % output: sex differences in the 3 microstructural measures, figures
 % functions:exportfigbo, BoSurfStatViewData, cbrewer, Surfstat 
 
-loadold = 0;
+loadold = 1;
 if loadold == 0
     clear all
     close all

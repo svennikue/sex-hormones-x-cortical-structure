@@ -4,7 +4,7 @@
 % makes use of a previously loaded transcriptomic map in schaefer400
 % parcellation from the BrainStat toolbox
 
-loadold = 1;
+loadold = 0;
 if loadold == 0
     clear all
     close all
@@ -35,12 +35,9 @@ end
         
 %% Set up transcriptomic maps and load data 
 
-
 load genes_schaefer400.mat
 genelabels = genes_schaefer400.gene_names{1, 1}; 
 genelabels = (string(genelabels))';
-
-
 
 expression_schaefer400 = genes_schaefer400.expression{1, 1};
 
@@ -145,8 +142,8 @@ for measure = 1:3
             formula = [formula ' + ']; % Add + between predictors
         end
     end
-    mdl = fitglm(T, formula);
-    trueF(:,measure) = mdl.devianceTest{:,'FStat'}(2);
+    mdl_orig = fitglm(T, formula);
+    trueF(:,measure) = mdl_orig.devianceTest{:,'FStat'}(2);
     % Display the model summary
     namemoment(measure)
     for j = 1:1000
@@ -241,7 +238,7 @@ for measure = 1:3
             his = histogram(r_dist, 50, 'Normalization', 'pdf', 'edgecolor', 'w', ...
                                'facealpha', 1, 'linewidth', 0.5);
             l = line(rho, 5,'Color', 'k','LineStyle', '-', 'Marker', 'o', 'MarkerFaceColor', 'k');
-            xlabel(['Null correlations' newline (sprintf('(sex diffs between %s and transcriptomic map %d)', namemoment, i))])
+            xlabel(['Null correlations' newline (sprintf('(sex diffs between %s and transcriptomic map %d)', namemoment(measure), i))])
             legend(l,['{\it r}=' num2str(round(rho, 2)) newline ...
                               '{\it p}=' num2str(round(p_spin,3 ))])
             count = count + 1
@@ -295,7 +292,11 @@ Skew_pspin = steroidsynthcorr(:,3,3);
 
 Steroidsynthesisresults = table(Genes, Gradient_corr, Gradient_p,Gradient_pspin, Mean_corr, Mean_p, Mean_pspin, Skew_corr, Skew_p, Skew_pspin);
 
-save(fullfile(outDir, 'geneticdecoding.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+save(fullfile(outDir, 'geneticdecoding_13032024-2.mat'), 'Steroidreceptorresults', 'Steroidsynthesisresults', 'steroidreccorr', 'steroidsynthcorr', 'chromsYcorr', 'chromsXcorr', 'baselinecorr', 'coeff', 'PC');
+
+% and save as csv
+writetable(Steroidreceptorresults, fullfile(outDir, 'Steroidreceptorresults_13032024-2.csv')); 
+writetable(Steroidsynthesisresults,fullfile(outDir, 'Steroidsynthesisresults13032024-2.csv')); 
 
 %% FDR Correction a la Benjamini Hochberg
 % or reshape
@@ -304,15 +305,16 @@ pValues = [Steroidsynthesisresults.Gradient_pspin; Steroidsynthesisresults.Mean_
     Steroidreceptorresults.Gradient_pspin; Steroidreceptorresults.Mean_pspin; Steroidreceptorresults.Skew_pspin];
 h = fdr_bh(pValues,0.05);
 
-for measure = 1:3
-    pValues = pvals(measure,:);
-    h = fdr_bh(pValues,0.05); % if h is 1, then significant.
-end
+% for measure = 1:3
+%     pValues = pvals(measure,:);
+%     h = fdr_bh(pValues,0.05); % if h is 1, then significant.
+% end
 
 %% Plotting 
 
 clear C yl xl pvals xpAll
 
+% change order for plotting in manuscript
 Ctmp(:,3) = Steroidsynthesisresults.Gradient_corr;
 Ctmp(:,1) = Steroidsynthesisresults.Mean_corr;
 Ctmp(:,2) = Steroidsynthesisresults.Skew_corr;
@@ -461,7 +463,7 @@ axis off
 
 disp(' ...saving results')
 if saveall == 1
-    save(fullfile(outDir, '/genetic_decoding_sexdiffs.mat'));
+    save(fullfile(outDir, '/genetic_decoding_sexdiffs_13032024-2.mat'));
     %save((fullfile(outDir, sprintf('%s_sexdiffsmaps.mat', dataname))), 'T1T2moments', 'results', 'covariates', 'keep');    
     FigList = findobj(allchild(0), 'flat','Type','figure');
     for iFig = 1:length(FigList)
