@@ -5,8 +5,9 @@
 %       MPCs/ mean MPC, HCP data
 % output: sex differences in the 3 microstructural measures, figures
 % functions:exportfigbo, BoSurfStatViewData, cbrewer, Surfstat, brainstat
+% Supplement 1
 
-loadold = 1;
+loadold = 0;
 if loadold == 0
     clear all
     close all

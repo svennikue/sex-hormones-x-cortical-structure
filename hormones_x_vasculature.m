@@ -3,9 +3,10 @@
 % input: vasculature maps, sex difference results, hormonal results.
 % output: spatial correlations, spin-corrected pvalues and spin-rho
 % distributions of correlation between effect maps and vasculature maps
+% Supplement 11
 
-loadold = 0;
-saveall = 1;
+loadold = 1;
+saveall = 0;
 
 addpath(genpath('/Users/skuech/Documents/toolboxes'));
 homeDir = '/Users/skuech/Documents/my_projects/female_gradients/';

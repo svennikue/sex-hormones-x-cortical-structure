@@ -3,6 +3,7 @@
 % output: correlation between gene expr. maps and sex difference measures
 % makes use of a previously loaded transcriptomic map in schaefer400
 % parcellation from the BrainStat toolbox
+% Figure 05
 
 loadold = 0;
 if loadold == 0

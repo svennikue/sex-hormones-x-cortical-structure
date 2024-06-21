@@ -3,6 +3,7 @@
 % firstly, it correlates sex difference tval maps with different cortical
 % types. Second, it plots tvals (or d-values) per cortical type. Third, it compares sex 
 % differences with BigBrain microstructural gradients
+% Figure 6
 
 clear all
 close all
@@ -53,7 +54,7 @@ colormap((cbrewer('seq','YlGn',11)))
 %close all 
 
 
-for measure = 1:3      
+for measure = 2      
     if measure == 1                
         namemoment = 'gradient'
         else if measure == 2

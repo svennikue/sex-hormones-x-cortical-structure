@@ -5,6 +5,7 @@
 
 % This script computes sex-differences and hormonal effects on the
 % hippocampus
+% Supplement 6
 
 loadold = 1;
 if loadold == 0

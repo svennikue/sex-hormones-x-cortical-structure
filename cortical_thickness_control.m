@@ -1,4 +1,5 @@
 % Cortical Thickness analysis
+% Supplement 4
 
 close all
 clear all
@@ -76,7 +77,7 @@ SurfStatColLim([-1 1])
 
 
 % finally, check if cortical thickness relates to any of the 3 measures.
-for m = 1:3
+for m = 2
     if m == 1                
     namemoment = 'gradient'
     else if m == 2

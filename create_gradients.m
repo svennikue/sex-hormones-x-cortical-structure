@@ -1,6 +1,7 @@
 % Gradient computation for HCP data
 % requires: female_gradients.mat (= 1206 HCP dataset in T1T2w profiles)
 % Functions: schaefer parcellation toolbox, exportfigbo, brainspace toolbox
+% First step for main analysis: needed for Figure 1,2
 
 count = 0;
 parcellation_glasser = true;

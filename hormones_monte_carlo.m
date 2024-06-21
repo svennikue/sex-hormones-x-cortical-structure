@@ -1,10 +1,14 @@
 % This script analysis if microstructural moments changes as a function of
 % hormones. 
-% last edited 2023, written by Svenja Kuchenhoff.
-% firstly, it compares men to women taking oral contraceptives (OC) vs.
-% women that are naturally cycling (NC); and secondly, it compares men to
-% women in different phases of their menstrual cycle. 
+% This script analysis if microstructural moments changes as a function of
+% hormones. 
+% it takes the 5 models included in the manuscript and then runs a
+% reliabilty anlyses with it: does the effect depend on something in the
+% male sample?
 % this scripts requires to have run sex_diffs_3measures.m before
+% last edited 2024, written by Svenja Kuchenhoff.
+% % Script for Supplement figure 8
+
 
 loadold = 0;
 

@@ -1,6 +1,7 @@
 % this script loads the results from sex_diffs_3measures.m and creates random
 % splits, weighted for men and women. 
 % it does so 1000 times and outputs the correlations.
+% Figure 2
 
 clear all
 

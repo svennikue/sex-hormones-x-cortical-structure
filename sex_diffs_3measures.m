@@ -5,6 +5,8 @@
 %       MPCs/ mean MPC, HCP data
 % output: sex differences in the 3 microstructural measures, figures
 % functions:exportfigbo, BoSurfStatViewData, cbrewer, Surfstat 
+% Figure 1, 2
+% Supplement 2, 12
 
 loadold = 1;
 if loadold == 0
@@ -86,7 +88,7 @@ else if loadold == 1
 end
 
 
-%% Plot method.
+%% Plot method gradient.
 
 f = figure,
 BoSurfStatViewData(schaefer_400,SN,'')
@@ -107,7 +109,7 @@ count = count + 1
 FigName{(count)} = sprintf('%s_meanMPC.fig', dataname);
 
 
-% plot a sorted MPC for one subject
+% plot the sorted average gradient
 [B, I] = sort(mean(c1_tx));
 for i = 1:400
     x = I(i);
@@ -172,8 +174,8 @@ covariates.euler = euler_no;
 
 
 %% Sex difference Analysis for all 3 measures.
-for m = 1:size(T1T2moments, 3)
-%for m = 3
+%for m = 1:size(T1T2moments, 3)
+for m = 1
     if m == 1
         namemoment = 'gradient';
     else if m == 2
@@ -251,6 +253,7 @@ for m = 1:size(T1T2moments, 3)
     count = count + 1
     FigName{(count)} = sprintf('%s_method_%s.fig', dataname, namemoment);
 
+    keyboard
         
     % set up linear model with covariates of sex, age and ICV 
     M = 1 + sexterm + ageterm + icvterm + eulerterm;        

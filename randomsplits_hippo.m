@@ -6,6 +6,7 @@
 
 % careful: one has to adjust the script in case the take out 20% is wished
 % for. In the default, only the first figure ist usable.
+% Supplement 5
 
 clear all
 
