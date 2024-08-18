@@ -54,7 +54,7 @@ colormap((cbrewer('seq','YlGn',11)))
 %close all 
 
 
-for measure = 1:3      
+for measure = 3      
     if measure == 1                
         namemoment = 'gradient'
         else if measure == 2
@@ -86,7 +86,6 @@ for measure = 1:3
 
 
     [rho,pval] = corr(d_vals(:, measure), parc400', 'Type', 'Spearman', 'rows', 'complete');
-    rho
 
     % spin permutation testing
     [p_spin, r_dist] = spin_test(d_vals(:, measure), parc400', 'surface_name',...
@@ -111,7 +110,7 @@ for measure = 1:3
     results.corrs(measure,:) = rho;
     results.pvals(measure,:) = pval;
     results.spin(measure,:) = p_spin;
-    results.perms(measure,:) = r_dist;
+    results.perms()
     
     % PT 2: PLOT TVALS PER CORTICAL TYPE
     %types400 = types400';
