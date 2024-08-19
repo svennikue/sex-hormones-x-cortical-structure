@@ -54,7 +54,7 @@ colormap((cbrewer('seq','YlGn',11)))
 %close all 
 
 
-for measure = 1:3      
+for measure = 3      
     if measure == 1                
         namemoment = 'gradient'
         else if measure == 2
